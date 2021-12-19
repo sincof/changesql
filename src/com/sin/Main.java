@@ -1,4 +1,4 @@
-package com.tencent;
+package com.sin;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -12,7 +12,7 @@ import com.beust.jcommander.Parameter;
 //   mkdir -p target && javac -sourcepath ./src/ ./src/com/tencent/Example.java  -d ./target/
 //   cd target && java -classpath . com.tencent.Example  --data_path /tmp/data --dst_ip 127.0.0.1 --dst_port 3306 --dst_user root
 //      --dst_password 123456789
-public class Example {
+public class Main {
     @Parameter(names = {"--data_path"}, description = "dir path of source data")
     public String DataPath = "";
 
@@ -29,15 +29,15 @@ public class Example {
     public String DstPassword = "";
 
     public static void main(String[] args) {
-        Example example = new Example();
+        Main main = new Main();
 
         //parse cmd
-        JCommander jc = JCommander.newBuilder().addObject(example).build();
+        JCommander jc = JCommander.newBuilder().addObject(main).build();
         jc.parse(args);
 
         //jc.usage();  //print command parameter usage
 
-        example.run(); //print command parameters
+        main.run(); //print command parameters
     }
 
 
