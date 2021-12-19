@@ -6,4 +6,4 @@ cd target
 
 echo "shell parameters: $*"
 
-java -classpath . com.tencent.Example  $*
+java -classpath . com.sin.Main  $*
