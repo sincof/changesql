@@ -3,15 +3,10 @@ package com.sin;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
-//  example of parameter parse, the final binary should be able to accept specified parameters as requested
-//
-//  usage example:
-//      ./run --data_path /tmp/data --dst_ip 127.0.0.1 --dst_port 3306 --dst_user root --dst_password 123456789
-//
-//  you can test this example by:
-//   mkdir -p target && javac -sourcepath ./src/ ./src/com/tencent/Example.java  -d ./target/
-//   cd target && java -classpath . com.tencent.Example  --data_path /tmp/data --dst_ip 127.0.0.1 --dst_port 3306 --dst_user root
-//      --dst_password 123456789
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+
 public class Main {
     @Parameter(names = {"--data_path"}, description = "dir path of source data")
     public String DataPath = "";
@@ -28,24 +23,32 @@ public class Main {
     @Parameter(names = {"--dst_password"}, description = "password of dst database")
     public String DstPassword = "";
 
-    public static void main(String[] args) {
-        Main main = new Main();
+    private static String url = "jdbc:mysql://121.41.55.205:3306/?characterEncoding=utf-8&useSSL=false&serverTimezone=Hongkong&allowPublicKeyRetrieval=true";
+    private static String DRIVER = "com.mysql.cj.jdbc.Driver";
+    private static String user = "changesql";
+    private static String passwd = "changesql";
+    static {
+        try{
+            Class.forName(DRIVER);
+        }catch (ClassNotFoundException e){
+            e.printStackTrace();
+        }
+    }
 
+    public static void main(String[] args) throws IOException {
+
+        Main main = new Main();
         //parse cmd
         JCommander jc = JCommander.newBuilder().addObject(main).build();
         jc.parse(args);
 
-        //jc.usage();  //print command parameter usage
-
-        main.run(); //print command parameters
+        try {
+//            Class.forName().newInstance();
+            Connection conn = DriverManager.getConnection(url, user, passwd);
+            System.out.println(conn.getClientInfo().toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
-
-    public void run() {
-        System.out.printf("data path:%s\n",DataPath);
-        System.out.printf("dst ip:%s\n",DstIP);
-        System.out.printf("dst port:%d\n",DstPort);
-        System.out.printf("dst user:%s\n",DstUser);
-        System.out.printf("dst password:%s\n",DstPassword);
-    }
+    // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
 }
