@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="metrics-healthchecks-4.0.3">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/metrics-healthchecks-4.0.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -2,11 +2,16 @@ package com.sin.service;
 
 import com.sin.entity.DatabaseEntity;
 import com.sin.entity.TableEntity;
+import com.zaxxer.hikari.HikariDataSource;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 
 public class DBManager {
@@ -14,17 +19,19 @@ public class DBManager {
     // public List<DatabaseEntity> dbs; // it seems we do not need list to store and
     // iterate the database list
     // Map is enough to do it
-    public Map<String, DatabaseEntity> strToDB;
+    // Build and do not modify this map object
+    // do not care about the concurrent problem.
+    public Map<String, DatabaseEntity> dbStore;
 
     public DBManager(String filePath) throws IOException {
         this.filePath = filePath;
         // dbs = new LinkedList<>();
-        strToDB = new HashMap<>();
+        dbStore = new HashMap<>();
         getDBList();
     }
 
     public void getDBList() throws IOException {
-        String filePath = "tmp/data/";
+//        String filePath = "tmp/data/";
         File dirFile = new File(filePath);
         if (!dirFile.isDirectory())
             return;
@@ -47,7 +54,7 @@ public class DBManager {
                     continue;
                 String[] tablelist = dbFile.list();
                 // 利用database文件夹的名字获取到对应的对象
-                DatabaseEntity dbEntity = strToDB.getOrDefault(databaseDir[j], new DatabaseEntity(databaseDir[j]));
+                DatabaseEntity dbEntity = dbStore.getOrDefault(databaseDir[j], new DatabaseEntity(databaseDir[j]));
 
                 for (int k = 0; tablelist != null && k < tablelist.length; k++) {
                     // split转义特定含义的字符(., *, $, |等)，例如. 需要使用\\.
@@ -73,8 +80,27 @@ public class DBManager {
                         dbEntity.tableEntityMap.get(fname[0]).tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
                     }
                 }
-                strToDB.put(databaseDir[j], dbEntity);
+                dbStore.put(databaseDir[j], dbEntity);
             }
         }
+    }
+
+    public int createDB(Connection conn) {
+        String createDBCommand = "create database if not exists %s;";
+        Iterator<String> it = dbStore.keySet().iterator();
+        try {
+            Statement statement = conn.createStatement();
+            while (it.hasNext()) {
+                statement.execute(createDBCommand.formatted(it.next()));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+        return 0;
+    }
+
+    public int createTable() {
+        return 0;
     }
 }

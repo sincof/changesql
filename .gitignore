@@ -9,3 +9,6 @@
 
 # data is too large and do not push to github
 /tmp/data/
+
+# compile file
+/out

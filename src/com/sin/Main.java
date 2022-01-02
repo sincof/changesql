@@ -2,10 +2,18 @@ package com.sin;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.sin.service.DBConnection;
+import com.sin.service.DBManager;
 
+import javax.swing.text.html.HTMLEditorKit;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class Main {
     @Parameter(names = {"--data_path"}, description = "dir path of source data")
@@ -15,7 +23,7 @@ public class Main {
     public String DstIP = "";
 
     @Parameter(names = {"--dst_port"}, description = "port of dst database address")
-    public Integer DstPort = 0;
+    public String DstPort = "";
 
     @Parameter(names = {"--dst_user"}, description = "user name of dst database")
     public String DstUser = "";
@@ -23,17 +31,8 @@ public class Main {
     @Parameter(names = {"--dst_password"}, description = "password of dst database")
     public String DstPassword = "";
 
-    private static String url = "jdbc:mysql://121.41.55.205:3306/?characterEncoding=utf-8&useSSL=false&serverTimezone=Hongkong&allowPublicKeyRetrieval=true";
-    private static String DRIVER = "com.mysql.cj.jdbc.Driver";
-    private static String user = "changesql";
-    private static String passwd = "changesql";
-    static {
-        try{
-            Class.forName(DRIVER);
-        }catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
-    }
+
+
 
     public static void main(String[] args) throws IOException {
 
@@ -42,13 +41,11 @@ public class Main {
         JCommander jc = JCommander.newBuilder().addObject(main).build();
         jc.parse(args);
 
-        try {
-//            Class.forName().newInstance();
-            Connection conn = DriverManager.getConnection(url, user, passwd);
-            System.out.println(conn.getClientInfo().toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        DBConnection dbconn = new DBConnection(main.DstIP, main.DstPort, main.DstUser, main.DstPassword);
+        Connection conn = dbconn.connectDB();
+
+        DBManager dbManager = new DBManager("tmp/data/");
+        dbManager.createDB(conn);
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
 }

@@ -7,13 +7,13 @@ import java.util.Map;
 
 public class DatabaseEntity {
     public String name;
-    public List<String> availDatabasePath;
+//    public List<String> availDatabasePath;
     public List<TableEntity> tableEntities;
     public Map<String, TableEntity> tableEntityMap;
 
     public DatabaseEntity(String name) {
         this.name = name;
-        availDatabasePath = new LinkedList<>();
+//        availDatabasePath = new LinkedList<>();
         tableEntities = new LinkedList<>();
         tableEntityMap = new HashMap<>();
     }
