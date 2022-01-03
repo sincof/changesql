@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="Ali" uuid="449c8aee-c5e2-42b9-80fd-43629e8c9586">
+    <data-source source="LOCAL" name="changesql" uuid="ae26c9b2-042c-4f52-9e77-757ed27d7026">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>

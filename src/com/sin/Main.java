@@ -44,7 +44,7 @@ public class Main {
         DBConnection dbconn = new DBConnection(main.DstIP, main.DstPort, main.DstUser, main.DstPassword);
         Connection conn = dbconn.connectDB();
 
-        DBManager dbManager = new DBManager("tmp/data/");
+        DBManager dbManager = new DBManager(main.DataPath);
         dbManager.createDB(conn);
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址

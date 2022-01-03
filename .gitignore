@@ -12,3 +12,6 @@
 
 # compile file
 /out
+
+#Alibaba DRUID
+/src/com/alibaba

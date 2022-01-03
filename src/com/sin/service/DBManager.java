@@ -39,8 +39,11 @@ public class DBManager {
         // 遍历每一个source
         for (int i = 0; dirs != null && i < dirs.length; i++) {
             // 每个source对应的路径
-            String sourcePath = filePath + dirs[i];
-            File sourceFile = new File(sourcePath);
+            StringBuilder sourcePath = new StringBuilder(filePath);
+            if(filePath.charAt(filePath.length() - 1) != '/' || filePath.charAt(filePath.length() - 1) != '\\')
+                sourcePath.append("/");
+            sourcePath.append(dirs[i]);
+            File sourceFile = new File(sourcePath.toString());
             // 每个source下的database目录
             if (!sourceFile.isDirectory())
                 continue;
@@ -63,20 +66,24 @@ public class DBManager {
                     if (fname.length != 2 || !"sql".equals(fname[1])) {
                         continue;
                     }
+
+                    // 获取表定义文件的内容
+                    File tableDefine = new File(dbPath + "/" + tablelist[k]);
+                    // 利用 BufferedReader 去读取表定义文件
+                    BufferedReader br = new BufferedReader(new FileReader(tableDefine));
+                    char[] buf = new char[1024];
+                    Arrays.fill(buf, '\0');
+                    int len = br.read(buf, 0, 1024);
+                    br.close();
+
                     if (!dbEntity.tableEntityMap.containsKey(fname[0])) {
-                        File define = new File(dbPath + "/" + tablelist[k]);
-                        // 利用 BufferedReader 去读取表定义文件
-                        BufferedReader br = new BufferedReader(new FileReader(define));
-                        char[] buf = new char[1024];
-                        Arrays.fill(buf, '\0');
-                        int len = br.read(buf, 0, 1024);
-                        br.close();
                         // 创建新的表的实体
                         TableEntity table = new TableEntity(fname[0], String.valueOf(buf, 0, len));
                         table.tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
                         // 塞到map里面去
                         dbEntity.tableEntityMap.put(fname[0], table);
                     } else {
+                        dbEntity.tableEntityMap.get(fname[0]).addTBDefine(String.valueOf(buf, 0, len));
                         dbEntity.tableEntityMap.get(fname[0]).tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
                     }
                 }
@@ -84,7 +91,7 @@ public class DBManager {
             }
         }
     }
-
+    // 每个在线程池里面的线程，调用该函数，来创建该
     public int createDB(Connection conn) {
         String createDBCommand = "create database if not exists %s;";
         Iterator<String> it = dbStore.keySet().iterator();
@@ -100,7 +107,9 @@ public class DBManager {
         return 0;
     }
 
-    public int createTable() {
+    // 任务是 创建表，创建
+    public int createTable(Connection conn) {
+        String createTBCommand = "create table %s if not exists";
         return 0;
     }
 }
