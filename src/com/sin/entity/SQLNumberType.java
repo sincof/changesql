@@ -18,6 +18,12 @@ public enum SQLNumberType {
                 // 再插入的时候，既支持字符串类型插入，也支持数字类型的插入
 
     public static boolean contains(String str){
+        // 为了程序的健壮 以防后面万一脑子抽了瞎几把传东西进来
+        if(str == null || str.length() == 0)
+            return false;
+        str = str.toUpperCase();
+        if("INTEGER".equals(str))
+            return true;
         for(SQLNumberType sqlNumberType : SQLNumberType.values()){
             if(sqlNumberType.name().equals(str)){
                 return true;

@@ -5,6 +5,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,14 +20,17 @@ public class TableEntity {
 
     public TableEntity(String name, String createTableStatement) {
         this.name = name;
-        createTBDefine(createTableStatement);
         this.tableDataPath = new LinkedList<>();
+        this.columns = new LinkedList<String>();
+        this.columnDefinitionMap = new HashMap<String, ColumnDefinition>();
+        createTBDefine(createTableStatement);
     }
 
     public void createTBDefine(String statement) {
         try {
             CreateTable createTable = (CreateTable) CCJSqlParserUtil.parse(statement);
-            for (ColumnDefinition col : createTable.getColumnDefinitions()) {
+            List<ColumnDefinition> columnDefinitionList = createTable.getColumnDefinitions();
+            for (ColumnDefinition col : columnDefinitionList) {
                 columns.add(col.getColumnName());
                 columnDefinitionMap.put(col.getColumnName(), col);
             }

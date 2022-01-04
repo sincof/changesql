@@ -39,13 +39,21 @@ public class nowTest {
 
     @Test
     public void runParse(){
-        String sql = "CREATE TABLE if not exists `1`  (\n" +
-                "  `id` BIGINT(299 299) unsigned NOT NULL,\n" +
-                "  `a` float NOT NULL DEFAULT '0',\n" +
-                "  `b` char(32) NOT NULL DEFAULT '',\n" +
-                "  `updated_at` datetime NOT NULL DEFAULT '2021-12-12 00:00:00',\n" +
-                "  PRIMARY KEY (`id`)\n" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        // 下面的是多行字符串
+        // """
+        //Java
+        //line 2
+        //line 3
+        //""" 这个等价于
+        // "line 1\nline 2\nline 3\n"
+        String sql = """
+                CREATE TABLE if not exists `1`  (
+                  `id` BIGINT(299 299) unsigned NOT NULL,
+                  `a` float NOT NULL DEFAULT '0',
+                  `b` char(32) NOT NULL DEFAULT '',
+                  `updated_at` datetime NOT NULL DEFAULT '2021-12-12 00:00:00',
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8""";
         try {
             CreateTable createTable = (CreateTable) CCJSqlParserUtil.parse(sql);
             for (ColumnDefinition col : createTable.getColumnDefinitions()) {
@@ -68,7 +76,7 @@ public class nowTest {
         SQLNumberType tinyType = SQLNumberType.valueOf("tinyint".toUpperCase());
         System.out.println(intType.ordinal());
         System.out.println(tinyType.compareTo(intType));
-        if(SQLNumberType.contains("iNT".toUpperCase()))
-            System.out.println("YES");
+        Assertions.assertTrue(SQLNumberType.contains("iNteger"));
+        Assertions.assertTrue(SQLNumberType.contains("TinyInt"));
     }
 }
