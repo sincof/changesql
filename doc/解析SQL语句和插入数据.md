@@ -1,5 +1,9 @@
 # 解析SQL语句
 
+解析的内容全部参考官方文档[mysqlType](https://dev.mysql.com/doc/refman/8.0/en/numeric-types.html)
+
+解析的内容就先这样不管了，等完成多线程插入再看看如何修改
+
 ### DECIMAL
 
 1. **DECIMAL 如果总长度小于等于M，但是小数点的位数超过了N会导致超过精度后的数字被删除！这不会影响插入的结果**

@@ -44,7 +44,22 @@
 
 ### 最好利用PreparedStatement来操作
 
+但是PlreparedStatement也存在相应的问题，不是对create使用的，是对insert等操作使用的
 
+## 一些疑问
+
+1. 当我存在创建table的需求的时候，如何确定我当前连接是位于哪一个数据库呢？当我执行create table statement，如何设置在哪个数据库创建。（这个项目是需要在未指定的JDBC连接的条件下运行的）
+2.  如何
+
+## 开发中遇到的问题
+
+1. 当我复用利用connection.setCatalog(DatabaseName)已经设置了数据库的时候，在利用statement去执行创建新的数据库命令的时候就会出错。每次创建完新的数据库都要关闭连接然后新建立一个链接
+
+
+
+[JDBC学习指南 IOWIKI](https://iowiki.com/jdbc/jdbc-quick-guide.html) 
+
+[JDBC 乐天笔记](https://www.letianbiji.com/jdbc/jdbc-create-db-and-table.html) 
 
 https://juejin.cn/post/6965271621204443167
 

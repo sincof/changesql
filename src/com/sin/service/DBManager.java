@@ -1,5 +1,6 @@
 package com.sin.service;
 
+import com.mysql.cj.xdevapi.Table;
 import com.sin.entity.DatabaseEntity;
 import com.sin.entity.TableEntity;
 import com.zaxxer.hikari.HikariDataSource;
@@ -36,6 +37,7 @@ public class DBManager {
         if (!dirFile.isDirectory())
             return;
         String[] dirs = dirFile.list();
+        char[] buf = new char[2048];
         // 遍历每一个source
         for (int i = 0; dirs != null && i < dirs.length; i++) {
             // 每个source对应的路径
@@ -71,7 +73,6 @@ public class DBManager {
                     File tableDefine = new File(dbPath + "/" + tablelist[k]);
                     // 利用 BufferedReader 去读取表定义文件
                     BufferedReader br = new BufferedReader(new FileReader(tableDefine));
-                    char[] buf = new char[1024];
                     Arrays.fill(buf, '\0');
                     int len = br.read(buf, 0, 1024);
                     br.close();
@@ -91,19 +92,64 @@ public class DBManager {
             }
         }
     }
-    // 每个在线程池里面的线程，调用该函数，来创建该
+    // 在程序开始 统一调度 实现插入数据库和表格
     public int createDB(Connection conn) {
-        String createDBCommand = "create database if not exists %s;";
-        Iterator<String> it = dbStore.keySet().iterator();
-        try {
-            Statement statement = conn.createStatement();
-            while (it.hasNext()) {
-                statement.execute(createDBCommand.formatted(it.next()));
+//        String cleanDBStatement = "drop database if exists %s";
+        String createDBStatement = "create database if not exists %s;";
+        for (String databaseName : dbStore.keySet()) {
+            try (Statement statement = conn.createStatement()) {
+                statement.execute(createDBStatement.formatted(databaseName));
+
+                // 切换连接的数据库
+                conn.setCatalog(databaseName);
+
+                // 如果我在这里运行,必定是需要建立连接的，这样会比较浪费时间
+                // 只是建立表格就直接关闭，没有充分利用这个连接
+                // 先在这里写吧，后续由于我是统一利用databaseEntity储存的也比较好修改
+                DatabaseEntity databaseEntity = dbStore.get(databaseName);
+                Iterator<TableEntity> TIt = databaseEntity.tableEntityMap.values().iterator();
+                while (TIt.hasNext()) {
+                    try (Statement createTBStatement = conn.createStatement()) {
+                        TableEntity tableEntity = TIt.next();
+                        createTBStatement.execute(tableEntity.createTable.toString());
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        return -1;
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return -1;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
         }
+//        try(Statement statement = conn.createStatement()){
+//            while (DBIt.hasNext()) {
+//                String DBName = DBIt.next();
+////                statement.execute(cleanDBStatement.formatted(DBName));
+//                statement.execute(createDBStatement.formatted(DBName));
+//
+//                // 切换连接的数据库
+//                conn.setCatalog(DBName);
+//
+//                // 如果我在这里运行,必定是需要建立连接的，这样会比较浪费时间
+//                // 只是建立表格就直接关闭，没有充分利用这个连接
+//                // 先在这里写吧，后续由于我是统一利用databaseEntity储存的也比较好修改
+//                DatabaseEntity databaseEntity = dbStore.get(DBName);
+//                Iterator<TableEntity> TIt = databaseEntity.tableEntityMap.values().iterator();
+//                while(TIt.hasNext()){
+//                    try(Statement createTBStatement = conn.createStatement()){
+//                        TableEntity tableEntity = TIt.next();
+//                        createTBStatement.execute(tableEntity.createTable.toString());
+//                    }catch (SQLException e){
+//                        e.printStackTrace();
+//                        return -1;
+//                    }
+//                }
+//            }
+//        } catch (SQLException e){
+//            e.printStackTrace();
+//            return -1;
+//        }
         return 0;
     }
 

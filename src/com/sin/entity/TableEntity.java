@@ -17,6 +17,7 @@ public class TableEntity {
     // 表格属性
     public List<String> columns;
     public Map<String, ColumnDefinition> columnDefinitionMap;
+    public CreateTable createTable;
 
     public TableEntity(String name, String createTableStatement) {
         this.name = name;
@@ -27,10 +28,11 @@ public class TableEntity {
     }
 
     public void createTBDefine(String statement) {
+        statement = statement.replaceAll("\\n", "");
+//        statement = statement.replaceAll("`","");
         try {
-            CreateTable createTable = (CreateTable) CCJSqlParserUtil.parse(statement);
-            List<ColumnDefinition> columnDefinitionList = createTable.getColumnDefinitions();
-            for (ColumnDefinition col : columnDefinitionList) {
+            this.createTable = (CreateTable) CCJSqlParserUtil.parse(statement);
+            for (ColumnDefinition col : this.createTable.getColumnDefinitions()) {
                 columns.add(col.getColumnName());
                 columnDefinitionMap.put(col.getColumnName(), col);
             }
@@ -41,8 +43,8 @@ public class TableEntity {
 
     public void addTBDefine(String createStatement) {
         try {
-            CreateTable createTable = (CreateTable) CCJSqlParserUtil.parse(createStatement);
-            for (ColumnDefinition col : createTable.getColumnDefinitions()) {
+            CreateTable otherCreateTable = (CreateTable) CCJSqlParserUtil.parse(createStatement);
+            for (ColumnDefinition col : otherCreateTable.getColumnDefinitions()) {
                 String colName = col.getColumnName();
                 if (columnDefinitionMap.containsKey(colName) && compareColumnType(columnDefinitionMap.get(colName), col)) {
                     columnDefinitionMap.put(colName, col);
