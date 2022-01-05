@@ -33,6 +33,8 @@ public class Main {
     @Parameter(names = {"--dst_password"}, description = "password of dst database")
     public String DstPassword = "";
 
+    public static final int DEFAULT_THREADS  = 4;
+
 
 
 
@@ -48,6 +50,9 @@ public class Main {
 
         DBManager dbManager = new DBManager(main.DataPath);
         dbManager.createDB(conn);
+
+
+
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
 }
