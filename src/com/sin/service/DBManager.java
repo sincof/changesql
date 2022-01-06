@@ -4,6 +4,7 @@ import com.mysql.cj.xdevapi.Table;
 import com.sin.entity.DatabaseEntity;
 import com.sin.entity.TableEntity;
 import com.zaxxer.hikari.HikariDataSource;
+import net.sf.jsqlparser.schema.Database;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,7 +18,7 @@ import java.util.*;
 
 public class DBManager {
     public String filePath;
-    // public List<DatabaseEntity> dbs; // it seems we do not need list to store and
+    public ArrayList<DatabaseEntity> dbList; // it seems we do not need list to store and
     // iterate the database list
     // Map is enough to do it
     // Build and do not modify this map object
@@ -28,10 +29,11 @@ public class DBManager {
         this.filePath = filePath;
         // dbs = new LinkedList<>();
         dbStore = new HashMap<>();
-        getDBList();
+        findDatabase();
+        dbList = new ArrayList<>(dbStore.values());
     }
 
-    public void getDBList() throws IOException {
+    public void findDatabase() throws IOException {
 //        String filePath = "tmp/data/";
         File dirFile = new File(filePath);
         if (!dirFile.isDirectory())
@@ -42,7 +44,7 @@ public class DBManager {
         for (int i = 0; dirs != null && i < dirs.length; i++) {
             // 每个source对应的路径
             StringBuilder sourcePath = new StringBuilder(filePath);
-            if(filePath.charAt(filePath.length() - 1) != '/' || filePath.charAt(filePath.length() - 1) != '\\')
+            if (filePath.charAt(filePath.length() - 1) != '/' || filePath.charAt(filePath.length() - 1) != '\\')
                 sourcePath.append("/");
             sourcePath.append(dirs[i]);
             File sourceFile = new File(sourcePath.toString());
@@ -92,6 +94,7 @@ public class DBManager {
             }
         }
     }
+
     // 在程序开始 统一调度 实现插入数据库和表格
     public int createDB(Connection conn) {
 //        String cleanDBStatement = "drop database if exists %s";
