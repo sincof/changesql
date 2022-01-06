@@ -16,12 +16,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.sin.thread.InsertByDatabase;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import net.sf.jsqlparser.schema.Database;
 
 public class Main {
     @Parameter(names = {"--data_path"}, description = "dir path of source data")
@@ -69,15 +71,34 @@ public class Main {
                 new ArrayBlockingQueue<>(QUEUE_CAPACITY),
                 new ThreadPoolExecutor.CallerRunsPolicy()
         );
+        int runTasks = 0;
+        DatabaseEntity[] dbEntity = new DatabaseEntity[CORE_POOL_SIZE];
+        Future<Boolean>[] result = new Future[CORE_POOL_SIZE];
         for(DatabaseEntity databaseEntity : dbManager.dbList){
-            poolExecutor.execute(new InsertByDatabase(databaseEntity));
+            if(runTasks < CORE_POOL_SIZE){
+                dbEntity[runTasks] = databaseEntity;
+                result[runTasks++] = poolExecutor.submit(new InsertByDatabase(databaseEntity));
+            }else{
+                int finishPos = -1;
+                while(finishPos == -1){
+                    for(int i = 0; i < CORE_POOL_SIZE; i++){
+                        if(result[i].isCancelled()){
+                            result[i] = poolExecutor.submit(new InsertByDatabase(dbEntity[i]));
+                        }
+                        if(result[i].isDone()){
+                            finishPos = i;
+                            break;
+                        }
+                    }
+                }
+                dbEntity[finishPos] = databaseEntity;
+                result[finishPos] = poolExecutor.submit(new InsertByDatabase(databaseEntity));
+            }
         }
         poolExecutor.shutdown();
-        poolExecutor.shutdownNow();
         while(!poolExecutor.awaitTermination(10, TimeUnit.SECONDS)){
-            System.out.println("Await for thread pool to finish!");
+            System.out.println("Wait for poolExecutor finished");
         }
-        System.out.println("Thread Pool Finish");
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
 }
