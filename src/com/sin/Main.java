@@ -21,9 +21,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.sin.thread.InsertByDatabase;
+import com.sin.thread.ThreadPoolManager;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import net.sf.jsqlparser.schema.Database;
+import org.jetbrains.annotations.NotNull;
 
 public class Main {
     @Parameter(names = {"--data_path"}, description = "dir path of source data")
@@ -57,48 +59,14 @@ public class Main {
         jc.parse(args);
 
         DBConnection dbconn = new DBConnection(main.DstIP, main.DstPort, main.DstUser, main.DstPassword);
-        Connection conn = dbconn.connectDB();   // 其实后面可以到到多线程在建立连接
+        // 其实后面可以到到多线程在创建数据库，这里创建也行，没差
+        Connection conn = dbconn.connectDB();
 
         DBManager dbManager = new DBManager(main.DataPath); // 获取所有的数据库信息
         dbManager.createDB(conn); // 创建数据表和数据库
 
-        // 多线程启动
-        ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
-                CORE_POOL_SIZE,
-                MAX_POOL_SIZE,
-                KEEP_ALIVE_TIME,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(QUEUE_CAPACITY),
-                new ThreadPoolExecutor.CallerRunsPolicy()
-        );
-        int runTasks = 0;
-        DatabaseEntity[] dbEntity = new DatabaseEntity[CORE_POOL_SIZE];
-        Future<Boolean>[] result = new Future[CORE_POOL_SIZE];
-        for(DatabaseEntity databaseEntity : dbManager.dbList){
-            if(runTasks < CORE_POOL_SIZE){
-                dbEntity[runTasks] = databaseEntity;
-                result[runTasks++] = poolExecutor.submit(new InsertByDatabase(databaseEntity));
-            }else{
-                int finishPos = -1;
-                while(finishPos == -1){
-                    for(int i = 0; i < CORE_POOL_SIZE; i++){
-                        if(result[i].isCancelled()){
-                            result[i] = poolExecutor.submit(new InsertByDatabase(dbEntity[i]));
-                        }
-                        if(result[i].isDone()){
-                            finishPos = i;
-                            break;
-                        }
-                    }
-                }
-                dbEntity[finishPos] = databaseEntity;
-                result[finishPos] = poolExecutor.submit(new InsertByDatabase(databaseEntity));
-            }
-        }
-        poolExecutor.shutdown();
-        while(!poolExecutor.awaitTermination(10, TimeUnit.SECONDS)){
-            System.out.println("Wait for poolExecutor finished");
-        }
+        ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
+        threadPoolManager.runInsertTask();
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
 }

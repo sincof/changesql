@@ -3,6 +3,7 @@ package com.sin.thread;
 import com.mysql.cj.x.protobuf.MysqlxCrud;
 import com.sin.entity.DatabaseEntity;
 
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 public class InsertByDatabase implements Callable<Boolean> {
@@ -13,9 +14,9 @@ public class InsertByDatabase implements Callable<Boolean> {
     }
 
     @Override
-    public Boolean call() throws Exception {
-        Thread.sleep(2000);
-        System.out.println("Finish insert tables in Datbase %s".formatted(databaseEntity.name));
+    public Boolean call() throws IOException, InterruptedException {
+         Thread.sleep(2000);
+         System.out.println("Finish insert tables in Datbase %s".formatted(databaseEntity.name));
         return true;
     }
 }
