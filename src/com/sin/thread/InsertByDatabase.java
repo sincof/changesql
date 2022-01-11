@@ -36,37 +36,40 @@ public class InsertByDatabase implements Callable<Boolean> {
     //      根据放回的结果发送更新以及插入块
     @Override
     public Boolean call() {
-        try{
+        try {
             // 在该线程里面需要使用的唯一一个连接
             assert dbConnection != null;
             Connection connection = dbConnection.connectDB();
+            connection.setCatalog(databaseEntity.name);
             // 该表存在主键 或者 唯一索引
             boolean primaryorUniqueKey = false;
 
             for (TableEntity curTable : databaseEntity.tableEntityMap.values()) {
-                String tableName = curTable.name;
+                String tableName = curTable.createTable.getTable().getName();
+//                String tableName = curTable.name;
                 // 判断是否有唯一索引或者主键
                 List<Index> list = curTable.createTable.getIndexes();
                 // 获取主键的列的名字，主键可能包含多个列
                 List<String> primaryKey = new LinkedList<>();
                 // 用于主键判断的条件
                 StringBuilder primaryStat = new StringBuilder();
-                for(Index index : list){
-                    if("primary key".equals(index.getType().toLowerCase(Locale.ROOT))){
+                for (Index index : list) {
+                    if ("primary key".equals(index.getType().toLowerCase(Locale.ROOT))) {
                         primaryorUniqueKey = true;
                         primaryKey = index.getColumnsNames();
-                        for(String s : primaryKey){
-                            if(primaryStat.length() == 0)
+                        for (String s : primaryKey) {
+                            if (primaryStat.length() == 0)
                                 primaryStat = new StringBuilder(s + "=?");
-                            primaryStat.append(" and ").append(s).append("=?");
+                            else
+                                primaryStat.append(" and ").append(s).append("=?");
                         }
                         break;
-                    }else if("unique key".equals(index.getType().toLowerCase(Locale.ROOT))){
+                    } else if ("unique key".equals(index.getType().toLowerCase(Locale.ROOT))) {
                         primaryorUniqueKey = true;
                         break;
                     }
                 }
-                if(primaryorUniqueKey){
+                if (primaryorUniqueKey) {
                     // 在tableEntity中，createTable只在第一次的时候更新过，后面的更新都记录在Map里面
                     // UPDATE table_name
                     // SET column1=value1,column2=value2,...
@@ -75,7 +78,7 @@ public class InsertByDatabase implements Callable<Boolean> {
                     // INSERT INTO table_name
                     // VALUES (value1,value2,value3,...);
                     StringBuilder insertSB = new StringBuilder("insert into " + tableName + " values (");
-                    for(String name : curTable.columns){
+                    for (String name : curTable.columns) {
                         updateSB.append(name).append("=?,");
                         insertSB.append("?,");
                     }
@@ -100,24 +103,24 @@ public class InsertByDatabase implements Callable<Boolean> {
                         while (line != null) {
                             data = line.split(",");
                             dataList.add(data);
-                            for(int i = 0; i < data.length; i++){
+                            for (int i = 0; i < data.length; i++) {
                                 selectStatement.setString(i, data[i]);
                             }
                             line = br.readLine();
                             cnt++;
-                            if(cnt == 1000){
+                            if (cnt == 1000) {
                                 selectStatement.executeBatch();
                             }
                         }
                     }
-                    if(cnt != 0){
+                    if (cnt != 0) {
                     }
-                }else{
+                } else {
                     // 如果不存在唯一索引或者主键
                 }
 
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }

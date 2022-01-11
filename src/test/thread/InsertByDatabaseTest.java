@@ -1,19 +1,206 @@
 package test.thread;
 
+import com.sin.entity.DatabaseEntity;
+import com.sin.entity.TableEntity;
+import com.sin.service.DBConnection;
+import com.sin.service.DBManager;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
 public class InsertByDatabaseTest {
 
+    String DstIP = "tdsqlshard-gzh17qjo.sql.tencentcdb.com";
+    String DstPort = "135";
+    String DstUser = "admin";
+    String DstPassword = "19351sinH_?";
+
+    DBConnection dbConnection = new DBConnection(DstIP, DstPort, DstUser, DstPassword);
+
+    // 对于查询测试 使用多个主键的来测试
+    public void selectTest() throws SQLException, IOException {
+        DBManager dbManager = new DBManager("tmp/data"); // 获取所有的数据库信息
+        DatabaseEntity databaseEntity = dbManager.dbStore.get("a");
+        TableEntity tableEntity = databaseEntity.tableEntityMap.get("1");
+
+        Connection connection = dbConnection.connectDB();
+        connection.setCatalog(databaseEntity.name);
+        // 该表存在主键 或者 唯一索引
+        boolean primaryorUniqueKey = false;
+        String tableName = tableEntity.createTable.getTable().getName();
+        // 判断是否有唯一索引或者主键
+        List<Index> list = tableEntity.createTable.getIndexes();
+        // 获取主键的列的名字，主键可能包含多个列
+        List<String> primaryKey = new LinkedList<>();
+        // 用于主键判断的条件
+        StringBuilder primaryStat = new StringBuilder();
+        for (Index index : list) {
+            if ("primary key".equals(index.getType().toLowerCase(Locale.ROOT))) {
+                primaryorUniqueKey = true;
+                primaryKey = index.getColumnsNames();
+                for (String s : primaryKey) {
+                    if (primaryStat.length() == 0)
+                        primaryStat = new StringBuilder(s + "=?");
+                    else
+                        primaryStat.append(" and ").append(s).append("=?");
+                }
+                break;
+            } else if ("unique key".equals(index.getType().toLowerCase(Locale.ROOT))) {
+                primaryorUniqueKey = true;
+                break;
+            }
+        }
+        if (primaryorUniqueKey) {
+            StringBuilder selectPreStatement = new StringBuilder("select updated_at from " + tableName + " where ");
+            // 对于多个主键的情况，能选出来么
+            PreparedStatement selectStatement = connection.prepareStatement(selectPreStatement.toString());
+
+            // 对所有插入的语句进行一个个计数
+            int cnt = 0;
+            List<String[]> dataList = new ArrayList<>(1002);
+            long startTime = System.currentTimeMillis();
+            try {
+                for (String dataPath : tableEntity.tableDataPath) {
+                    BufferedReader br = new BufferedReader(new FileReader(dataPath));
+                    String line = br.readLine();
+                    String[] data;
+                    while (line != null) {
+                        data = line.split(",");
+                        dataList.add(data);
+                        for (int i = 1; i <= data.length; i++)
+//                            insertStatement.setString(i, data[i - 1]);
+                            line = br.readLine();
+                        cnt++;
+//                        insertStatement.addBatch();
+                        if (cnt == 100000) {
+//                            int[] result = insertStatement.executeBatch();
+                            cnt = 0;
+                        }
+                    }
+                    if (cnt != 0) {
+//                        insertStatement.executeBatch();
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                long endTime = System.currentTimeMillis();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            long endTime = System.currentTimeMillis();
+            System.out.println(endTime - startTime);
+            try {
+                selectStatement.close();
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // 如果不存在唯一索引或者主键
+        }
+    }
+
+
+    // 10w行插入的话，一共50w行左右 接近20s
+    // 1w行插入的话，一共50w行做优 差不多39秒
     @Test
-    public void insertTest(){}
+    public void insertTest() throws IOException, SQLException {
+        DBManager dbManager = new DBManager("tmp/data"); // 获取所有的数据库信息
+        DatabaseEntity databaseEntity = dbManager.dbStore.get("a");
+        TableEntity tableEntity = databaseEntity.tableEntityMap.get("1");
+
+        Connection connection = dbConnection.connectDB();
+        connection.setCatalog(databaseEntity.name);
+        // 该表存在主键 或者 唯一索引
+        boolean primaryorUniqueKey = false;
+        String tableName = tableEntity.createTable.getTable().getName();
+        // 判断是否有唯一索引或者主键
+        List<Index> list = tableEntity.createTable.getIndexes();
+        // 获取主键的列的名字，主键可能包含多个列
+        List<String> primaryKey = new LinkedList<>();
+        // 用于主键判断的条件
+        StringBuilder primaryStat = new StringBuilder();
+        for (Index index : list) {
+            if ("primary key".equals(index.getType().toLowerCase(Locale.ROOT))) {
+                primaryorUniqueKey = true;
+                primaryKey = index.getColumnsNames();
+                for (String s : primaryKey) {
+                    if (primaryStat.length() == 0)
+                        primaryStat = new StringBuilder(s + "=?");
+                    else
+                        primaryStat.append(" and ").append(s).append("=?");
+                }
+                break;
+            } else if ("unique key".equals(index.getType().toLowerCase(Locale.ROOT))) {
+                primaryorUniqueKey = true;
+                break;
+            }
+        }
+
+        StringBuilder insertSB = new StringBuilder("insert into " + tableName + " values (");
+        for (String name : tableEntity.columns) {
+            insertSB.append("?,");
+        }
+        insertSB.deleteCharAt(insertSB.length() - 1);
+        insertSB.append(")");
+        PreparedStatement insertStatement = connection.prepareStatement(insertSB.toString());
+
+        // 对所有插入的语句进行一个个计数
+        int cnt = 0;
+        List<String[]> dataList = new ArrayList<>(1002);
+        long startTime = System.currentTimeMillis();
+        try {
+            for (String dataPath : tableEntity.tableDataPath) {
+                BufferedReader br = new BufferedReader(new FileReader(dataPath));
+                String line = br.readLine();
+                String[] data;
+                while (line != null) {
+                    data = line.split(",");
+                    dataList.add(data);
+                    for (int i = 1; i <= data.length; i++)
+                        insertStatement.setString(i, data[i - 1]);
+                    line = br.readLine();
+                    cnt++;
+//                        insertStatement.execute();
+                    insertStatement.addBatch();
+                    if (cnt == 100000) {
+                        int[] result = insertStatement.executeBatch();
+                        cnt = 0;
+                    }
+                }
+                if (cnt != 0) {
+                    insertStatement.executeBatch();
+                }
+            }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            e.printStackTrace();
+            long endTime = System.currentTimeMillis();
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println(endTime - startTime);
+        try {
+            insertStatement.close();
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     // JSQLPARSER
     // show create table + 表名 可以查看数据库中的DDL，数据库中的DDL格式一定是规整过的

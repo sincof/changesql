@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 public class TableEntity {
-    public String name;
     public List<String> tableDataPath;
 
     // 表格属性
@@ -20,7 +19,6 @@ public class TableEntity {
     public CreateTable createTable;
 
     public TableEntity(String name, String createTableStatement) {
-        this.name = name;
         this.tableDataPath = new LinkedList<>();
         this.columns = new LinkedList<String>();
         this.columnDefinitionMap = new HashMap<String, ColumnDefinition>();

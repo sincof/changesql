@@ -73,7 +73,15 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
 
 这玩意不能有初始值。
 
-# 插入数据注意内容
+# 插入数据
+## 对插入过程的分析
+
+1. 39MB的数据有 50W行，数据行数很大，所以要攒到足够多的行才插入
+
+   对于一个表 的一个表文件 如果10w一次性插入 耗时20s，如果1w行插入耗时39秒 主键里面只有一列
+
+   主键如果有两列的话：55s左右
+
 ## 插入数据过程
 
 需要注意的是，多个源端的数据中的表和数据可能存在冲突，对于同表的数据有冲突的情况（注：每个表都有类型为datetime的updated_at字段）： 
@@ -98,9 +106,17 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
       2. 如果不存在
          1. 将改行数据插入数据库
 
-流程需要改动，由于batch insert 不会放回结果值，只会放回成功或者没成功
+**流程需要改动，由于batch select不会放回结果值，只会放回成功或者没成功，不会有相关的数据传入**
 
-**这个项目对于数据库的操作只有插入和更新两种操作，对数据插入的流程如下：**
+If what you're after is performance, then executing 5 queries to find 5 users given an array of 5 IDs is not really the best solution. You'd better execute a single query that loads all the users at once, using
+
+```ruby
+select firstName, lastName FROM users WHERE userId in (?, ?, ?, ?, ?)
+```
+
+Similarly, your `getAllUsers()` method is extremely inefficient. It should execute a single query, instead of executing a query to get all the IDs, and then a query for every ID found.
+
+单次查询但是是查询我需要的结果，但是单次查询包含了很多列
 
 1. 有主键或者有非空唯一索引的
    1. 主键或者非空唯一索引去查询数据库更新时间
@@ -201,4 +217,14 @@ WHERE column_name operator value;
 [批处理插入参考链接](https://blog.csdn.net/cunchi4221/article/details/107471675)
 
 [MYSQL的数据类型和JAVA之间的联系和区别](https://blog.csdn.net/u013991521/article/details/80834875)
+
+
+
+## 编写插入时候遇到的错误
+
+1. 如果要batch插入，最后结尾不能带有分割符’;‘，否则会报错
+
+## 编写程序的时候 项目里面的坑
+
+1. 同一个表内都存在重复数据
 
