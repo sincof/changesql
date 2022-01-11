@@ -74,21 +74,21 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
 这玩意不能有初始值。
 
 # 插入数据注意内容
+## 插入数据过程
+
 需要注意的是，多个源端的数据中的表和数据可能存在冲突，对于同表的数据有冲突的情况（注：每个表都有类型为datetime的updated_at字段）： 
+
 - 如果有主键或者非空唯一索引，唯一索引相同的情况下，以行updated_at时间戳来判断是否覆盖数据，如果updated_at比原来的数据更新，那么覆盖数据；否则忽略数据。不存在主键相同，updated_at时间戳相同，但数据不同的情况。
 - 如果没有主键或者非空唯一索引，如果除updated_at其他数据都一样，只更新updated_at字段；否则，插入一条新的数据。
 注：每个表都有类型为datetime的updated_at字段
 
 1. 构建parparedStatement，利用parparedstatement来实现查询数据和插入数据两个操作
-
 2. 由于数据太大，在本地判断数据出没出现过很难控制使用内存大小的（4核心，8GB内存），很容易爆掉内存，因此肯定不能再本地去判断数据是否重复，只能通过数据库来知道数据是否存在重复的情况
-
 3. **这个项目对于数据库的操作只有插入和更新两种操作，对数据插入的流程如下：**
-
    1. 有主键或者有非空唯一索引的
       1. 主键或者非空唯一索引去查询数据库更新时间
          1. 如果数据库中存在以该主键或者非空唯一索引的列
-            1. update_at更新，更新
+            1. update_at更新，更新整个列
             2. 否则不做任何操作
          2. 如果数据库中不存在以该主键或者非空唯一索引的列
             1. 将该行数据插入
@@ -98,7 +98,24 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
       2. 如果不存在
          1. 将改行数据插入数据库
 
-4. 由于机器在和远端机器通信的过程中肯定会有延迟的，如果一条一条查询，效率肯定不高，故利用**batch insert**。但是batch insert效率还没有达到最高。
+流程需要改动，由于batch insert 不会放回结果值，只会放回成功或者没成功
+
+**这个项目对于数据库的操作只有插入和更新两种操作，对数据插入的流程如下：**
+
+1. 有主键或者有非空唯一索引的
+   1. 主键或者非空唯一索引去查询数据库更新时间
+      1. 如果数据库中存在以该主键或者非空唯一索引的列
+         1. update_at更新，更新整个列
+         2. 否则不做任何操作
+      2. 如果数据库中不存在以该主键或者非空唯一索引的列
+         1. 将该行数据插入
+2. 如果没有主键或者非空唯一索引的
+   1. 以该行的除了update_at的其他数据去查询数据库，如果存在
+      1. 更新update_at
+   2. 如果不存在
+      1. 将改行数据插入数据库
+
+1. 由于机器在和远端机器通信的过程中肯定会有延迟的，如果一条一条查询，效率肯定不高，故利用**batch insert**。但是batch insert效率还没有达到最高。
 
    ```java
    // Disable auto-commit
@@ -145,6 +162,41 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
    ```mysql
    INSERT INTO X VALUES (A1,B1,C1),(A2,B2,C2),...,(An,Bn,Cn)
    ```
+
+insert
+
+```mysql
+INSERT INTO table_name
+VALUES (value1,value2,value3,...);
+
+INSERT INTO table_name (column1,column2,column3,...)
+VALUES (value1,value2,value3,...);
+```
+
+delete
+
+```mysql
+DELETE FROM table_name
+WHERE some_column=some_value;
+```
+
+update
+
+```mysql
+UPDATE table_name
+SET column1=value1,column2=value2,...
+WHERE some_column=some_value;
+```
+
+select
+
+```mysql
+SELECT column_name,column_name
+FROM table_name
+WHERE column_name operator value;
+```
+
+
 
 [批处理插入参考链接](https://blog.csdn.net/cunchi4221/article/details/107471675)
 

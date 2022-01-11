@@ -90,5 +90,5 @@ public class ReadDataTest {
     }
     // BufferedReader: 19271ms 19346ms 19371ms
     // LineNumberReader: 17000ms 17591ms 18401ms
-    //
+    // 不知道各种方式占用内存的大小情况
 }

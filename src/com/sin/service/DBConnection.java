@@ -21,7 +21,7 @@ public class DBConnection {
     }
 
     public DBConnection(String ip, String port, String user, String passwd){
-        DBConnection.url = "jdbc:mysql://" + ip + ":" + port + "/?characterEncoding=utf-8&useSSL=false&serverTimezone=Hongkong&allowPublicKeyRetrieval=true";
+        DBConnection.url = "jdbc:mysql://" + ip + ":" + port + "/?characterEncoding=utf-8&useSSL=false&serverTimezone=Hongkong&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true";
         DBConnection.user = user;
         DBConnection.passwd = passwd;
     }
