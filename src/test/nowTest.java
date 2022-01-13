@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Locale;
@@ -35,7 +36,7 @@ public class nowTest {
     Connection conn = dbconn.connectDB();
     DBManager dbManager = new DBManager("tmp/data/");
 
-    public nowTest() throws IOException {
+    public nowTest() throws IOException, SQLException {
 //        dbManager.createDB(conn);
     }
 

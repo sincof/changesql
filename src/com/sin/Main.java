@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -60,11 +61,12 @@ public class Main {
 
         DBConnection dbconn = new DBConnection(main.DstIP, main.DstPort, main.DstUser, main.DstPassword);
         // 其实后面可以到到多线程在创建数据库，这里创建也行，没差
-        Connection conn = dbconn.connectDB();
-
         DBManager dbManager = new DBManager(main.DataPath); // 获取所有的数据库信息
-        dbManager.createDB(conn); // 创建数据表和数据库
-
+        try(Connection conn = dbconn.connectDB();){
+            dbManager.createDB(conn); // 创建数据表和数据库
+        } catch (SQLException sqle){
+            sqle.printStackTrace();
+        }
         ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
         threadPoolManager.runInsertTask();
     }

@@ -24,6 +24,7 @@ public class ThreadPoolManager {
     public ThreadPoolManager(DBManager dbManager, DBConnection dbconn){
         this.dbManager = dbManager;
         this.dbconn = dbconn;
+        assert dbconn != null;
     }
 
     // 利用线程池去管理多线程任务
@@ -43,13 +44,13 @@ public class ThreadPoolManager {
         for(DatabaseEntity databaseEntity : dbManager.dbList){
             if(runTasks < CORE_POOL_SIZE){
                 dbEntity[runTasks] = databaseEntity;
-                result[runTasks++] = poolExecutor.submit(new InsertByDatabase(databaseEntity));
+                result[runTasks++] = poolExecutor.submit(new InsertByDatabase(databaseEntity, dbconn));
             }else{
                 int finishPos = -1;
                 while(finishPos == -1){
                     for(int i = 0; i < CORE_POOL_SIZE; i++){
                         if(result[i].isCancelled()){
-                            result[i] = poolExecutor.submit(new InsertByDatabase(dbEntity[i]));
+                            result[i] = poolExecutor.submit(new InsertByDatabase(dbEntity[i], dbconn));
                         }
                         if(result[i].isDone()){
                             finishPos = i;
@@ -58,7 +59,7 @@ public class ThreadPoolManager {
                     }
                 }
                 dbEntity[finishPos] = databaseEntity;
-                result[finishPos] = poolExecutor.submit(new InsertByDatabase(databaseEntity));
+                result[finishPos] = poolExecutor.submit(new InsertByDatabase(databaseEntity, dbconn));
                 // 休眠一会 避免一直循环，占用CPU
                 Thread.sleep(1000);
             }

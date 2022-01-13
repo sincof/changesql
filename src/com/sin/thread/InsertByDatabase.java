@@ -18,11 +18,6 @@ public class InsertByDatabase implements Callable<Boolean> {
     private final DatabaseEntity databaseEntity;
     private final DBConnection dbConnection;
 
-    public InsertByDatabase(DatabaseEntity databaseEntity) {
-        this.databaseEntity = databaseEntity;
-        this.dbConnection = null;
-    }
-
     public InsertByDatabase(DatabaseEntity databaseEntity, DBConnection dbConnection) {
         this.databaseEntity = databaseEntity;
         this.dbConnection = dbConnection;
@@ -106,20 +101,23 @@ public class InsertByDatabase implements Callable<Boolean> {
                                 updateStatement.setString(i + 1, data[i]);
                             }
                             // 设置where的主键等于语句
-                            int nowKeyIndex = 0;
+                            int nowKeyIndex = 1;
                             for (String pk : primaryKey) {
                                 updateStatement.setString(data.length + nowKeyIndex, data[primaryKeyIndex.getOrDefault(pk, 0)]);
-                                selectStatement.setString(nowKeyIndex + 1, data[primaryKeyIndex.getOrDefault(pk, 0)]);
+                                selectStatement.setString(nowKeyIndex, data[primaryKeyIndex.getOrDefault(pk, 0)]);
                                 nowKeyIndex++;
                             }
                             ResultSet resultSet = selectStatement.executeQuery();
-                            if (resultSet.wasNull()) {
-                                insertStatement.execute();
-                            } else {
-                                String updated_at = resultSet.getString(0);
-
+                            if (resultSet.next()) {
+                                // 结果集中存在数据 更新数据
+                                String updated_at = resultSet.getString(1);
+                                // 判断是否更新的函数还没写，默认更新
                                 updateStatement.execute();
+                            } else {
+                                // 没有结果 就插入数据
+                                insertStatement.execute();
                             }
+                            resultSet.close();
                             line = br.readLine();
                         }
                         br.close();
@@ -175,10 +173,10 @@ public class InsertByDatabase implements Callable<Boolean> {
                                     selectStatement.setString(i, data[i]);
                             }
                             ResultSet resultSet = selectStatement.executeQuery();
-                            if (resultSet.wasNull()) {
-                                insertStatement.execute();
-                            } else {
+                            if (resultSet.next()) {
                                 updateStatement.execute();
+                            } else {
+                                insertStatement.execute();
                             }
                             line = br.readLine();
                         }
