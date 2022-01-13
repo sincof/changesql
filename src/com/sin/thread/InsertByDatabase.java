@@ -112,6 +112,9 @@ public class InsertByDatabase implements Callable<Boolean> {
                                 // 结果集中存在数据 更新数据
                                 String updated_at = resultSet.getString(1);
                                 // 判断是否更新的函数还没写，默认更新
+                                // TODO: ERROR Duplicate entry '1784783537-595.527' for key '1.PRIMARY'
+                                // 1. 数据库中存在了和插入数据一样的主键，但是没有查询出来
+                                // 2. 盲猜就是数据精度出现了问题，虽然没有查询到主键，但是实际上插入的时候却会报这个错误
                                 updateStatement.execute();
                             } else {
                                 // 没有结果 就插入数据
