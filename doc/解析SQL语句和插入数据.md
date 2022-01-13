@@ -1,5 +1,11 @@
 # 解析SQL语句
 
+**要么先写一个垃圾传上去看看效果，不管是否慢**
+
+**可以**
+
+
+
 解析的内容全部参考官方文档[mysqlType](https://dev.mysql.com/doc/refman/8.0/en/numeric-types.html)
 
 解析的内容就先这样不管了，等完成多线程插入再看看如何修改
@@ -74,6 +80,39 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
 这玩意不能有初始值。
 
 # 插入数据
+
+## 对于查询操作
+
+1. 单主键肯定是可以这样的，来提高效率
+
+   ```mysql
+   select firstName, lastName FROM users WHERE userId in (?, ?, ?, ?, ?)
+   ```
+
+   但是多主键要怎么处理呢？只能一条条查询么？
+
+策略：
+
+​	单主键 类似上面联合查询
+
+​	多主键，每条查询一次
+
+```mysql
+IF EXISTS (SELECT * FROM Products WHERE id = ?)
+BEGIN
+--do what you need if exists
+END
+ELSE
+BEGIN
+--do what needs to be done if not
+END
+```
+
+一句话完成插入的任务，现在有两个问题
+
+1. 如何完成对时间的判断
+2. 官方数据库是否支持这种操作？
+
 ## 对插入过程的分析
 
 1. 39MB的数据有 50W行，数据行数很大，所以要攒到足够多的行才插入
@@ -81,6 +120,10 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
    对于一个表 的一个表文件 如果10w一次性插入 耗时20s，如果1w行插入耗时39秒 主键里面只有一列
 
    主键如果有两列的话：55s左右
+   
+2. 插入过程中如果存在重复主键的话，会直接报错，程序直接推出运行
+
+3. 疑问：将数据全部设置为string类型会损失精度么？MYSQL float的精度为多少？在mysql中float使用了精度和默认float是一样的，最多存储6个数字。那应该是mysql的精度不够导致的
 
 ## 插入数据过程
 
@@ -91,7 +134,9 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
 注：每个表都有类型为datetime的updated_at字段
 
 1. 构建parparedStatement，利用parparedstatement来实现查询数据和插入数据两个操作
+
 2. 由于数据太大，在本地判断数据出没出现过很难控制使用内存大小的（4核心，8GB内存），很容易爆掉内存，因此肯定不能再本地去判断数据是否重复，只能通过数据库来知道数据是否存在重复的情况
+
 3. **这个项目对于数据库的操作只有插入和更新两种操作，对数据插入的流程如下：**
    1. 有主键或者有非空唯一索引的
       1. 主键或者非空唯一索引去查询数据库更新时间
@@ -100,7 +145,11 @@ BLOB, TEXT, GEOMETRY or JSON column 'id' can't have a default value。
             2. 否则不做任何操作
          2. 如果数据库中不存在以该主键或者非空唯一索引的列
             1. 将该行数据插入
+      
    2. 如果没有主键或者非空唯一索引的
+   
+      要先对这个数据建立视图（官方给了我们建立视图的权限，然后对视图建立索引）
+   
       1. 以该行的除了update_at的其他数据去查询数据库，如果存在
          1. 更新update_at
       2. 如果不存在
@@ -228,3 +277,14 @@ WHERE column_name operator value;
 
 1. 同一个表内都存在重复数据
 
+
+
+## 优化方式
+
+1. Disable auto-commit mode
+
+2. [10 Best Parctices](https://javarevisited.blogspot.com/2012/08/top-10-jdbc-best-practices-for-java.html#axzz7HfcSIUMv)
+
+3. **Always close Statement, PreparedStatement, and Connection.**
+
+   

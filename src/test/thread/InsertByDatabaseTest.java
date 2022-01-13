@@ -11,13 +11,9 @@ import net.sf.jsqlparser.statement.create.table.Index;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,14 +21,19 @@ import java.util.Locale;
 
 public class InsertByDatabaseTest {
 
-    String DstIP = "tdsqlshard-gzh17qjo.sql.tencentcdb.com";
-    String DstPort = "135";
-    String DstUser = "admin";
-    String DstPassword = "19351sinH_?";
+    //    String DstIP = "tdsqlshard-gzh17qjo.sql.tencentcdb.com";
+//    String DstPort = "135";
+//    String DstUser = "admin";
+//    String DstPassword = "19351sinH_?";
+    String DstIP = "121.41.55.205";
+    String DstPort = "3306";
+    String DstUser = "root";
+    String DstPassword = "changesql";
 
     DBConnection dbConnection = new DBConnection(DstIP, DstPort, DstUser, DstPassword);
 
     // 对于查询测试 使用多个主键的来测试
+    @Test
     public void selectTest() throws SQLException, IOException {
         DBManager dbManager = new DBManager("tmp/data"); // 获取所有的数据库信息
         DatabaseEntity databaseEntity = dbManager.dbStore.get("a");
@@ -43,78 +44,26 @@ public class InsertByDatabaseTest {
         // 该表存在主键 或者 唯一索引
         boolean primaryorUniqueKey = false;
         String tableName = tableEntity.createTable.getTable().getName();
-        // 判断是否有唯一索引或者主键
-        List<Index> list = tableEntity.createTable.getIndexes();
-        // 获取主键的列的名字，主键可能包含多个列
-        List<String> primaryKey = new LinkedList<>();
-        // 用于主键判断的条件
-        StringBuilder primaryStat = new StringBuilder();
-        for (Index index : list) {
-            if ("primary key".equals(index.getType().toLowerCase(Locale.ROOT))) {
-                primaryorUniqueKey = true;
-                primaryKey = index.getColumnsNames();
-                for (String s : primaryKey) {
-                    if (primaryStat.length() == 0)
-                        primaryStat = new StringBuilder(s + "=?");
-                    else
-                        primaryStat.append(" and ").append(s).append("=?");
-                }
-                break;
-            } else if ("unique key".equals(index.getType().toLowerCase(Locale.ROOT))) {
-                primaryorUniqueKey = true;
-                break;
-            }
-        }
-        if (primaryorUniqueKey) {
-            StringBuilder selectPreStatement = new StringBuilder("select updated_at from " + tableName + " where ");
-            // 对于多个主键的情况，能选出来么
-            PreparedStatement selectStatement = connection.prepareStatement(selectPreStatement.toString());
 
-            // 对所有插入的语句进行一个个计数
-            int cnt = 0;
-            List<String[]> dataList = new ArrayList<>(1002);
-            long startTime = System.currentTimeMillis();
-            try {
-                for (String dataPath : tableEntity.tableDataPath) {
-                    BufferedReader br = new BufferedReader(new FileReader(dataPath));
-                    String line = br.readLine();
-                    String[] data;
-                    while (line != null) {
-                        data = line.split(",");
-                        dataList.add(data);
-                        for (int i = 1; i <= data.length; i++)
-//                            insertStatement.setString(i, data[i - 1]);
-                            line = br.readLine();
-                        cnt++;
-//                        insertStatement.addBatch();
-                        if (cnt == 100000) {
-//                            int[] result = insertStatement.executeBatch();
-                            cnt = 0;
-                        }
-                    }
-                    if (cnt != 0) {
-//                        insertStatement.executeBatch();
-                    }
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                long endTime = System.currentTimeMillis();
-            } catch (IOException e) {
-                e.printStackTrace();
+        String s = """
+                SELECT *FROM `1`
+                    WHERE id
+                    in(18777,2877,2989,3157,3652,5015,9346,11912,18368,23828,24934,25091,26629,36657);""";
+        PreparedStatement selectStatement = connection.prepareStatement(s);
+        ResultSet resultSet = selectStatement.executeQuery();
+        ResultSetMetaData data = resultSet.getMetaData();
+        int columnCnt = data.getColumnCount();
+        int cnt = 0;
+        while (resultSet.next()) {
+            List<String> list = new ArrayList<>(columnCnt);
+            for (int i = 1; i <= columnCnt; i++) {
+                list.add(resultSet.getString(i));
             }
-            long endTime = System.currentTimeMillis();
-            System.out.println(endTime - startTime);
-            try {
-                selectStatement.close();
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        } else {
-            // 如果不存在唯一索引或者主键
+            cnt++;
+            System.out.println(list);
         }
+        System.out.println("total data received: " + cnt);
     }
-
 
     // 10w行插入的话，一共50w行左右 接近20s
     // 1w行插入的话，一共50w行做优 差不多39秒
@@ -250,6 +199,14 @@ public class InsertByDatabaseTest {
                   `b` char(32) NOT NULL DEFAULT '',
                   `updated_at` datetime NOT NULL DEFAULT '2021-12-12 00:00:00',
                   PRIMARY KEY (`id`,`a`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8""",
+            """
+                CREATE TABLE if not exists `2` (
+                  `id` bigint(20) unsigned NOT NULL,
+                  `a` float NOT NULL DEFAULT '0',
+                  `b` char(32) NOT NULL DEFAULT '',
+                  `updated_at` datetime NOT NULL DEFAULT '2021-12-12 00:00:00',
+                  PRIMARY KEY (`id`,`a`,`b`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8""",
             """
                 CREATE TABLE if not exists `3` (
