@@ -2,31 +2,13 @@ package com.sin;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.sin.entity.DatabaseEntity;
 import com.sin.service.DBConnection;
 import com.sin.service.DBManager;
-
-import javax.swing.text.html.HTMLEditorKit;
-import java.io.File;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import com.sin.thread.InsertByDatabase;
 import com.sin.thread.ThreadPoolManager;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import net.sf.jsqlparser.schema.Database;
-import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class Main {
     @Parameter(names = {"--data_path"}, description = "dir path of source data")

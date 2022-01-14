@@ -6,4 +6,4 @@ cd target
 
 echo "shell parameters: $*"
 
-java -classpath . com.sin.Main  $*
+java -classpath ./lib/mysql-connector-java-8.0.27.jar:./lib/HikariCP-4.0.3.jar:./lib/slf4j-api-1.7.32.jar:./lib/jsqlparser-4.3-SNAPSHOT.jar:. com.sin.Main  $*

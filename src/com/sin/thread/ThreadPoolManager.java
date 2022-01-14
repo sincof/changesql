@@ -3,7 +3,6 @@ package com.sin.thread;
 import com.sin.entity.DatabaseEntity;
 import com.sin.service.DBConnection;
 import com.sin.service.DBManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
