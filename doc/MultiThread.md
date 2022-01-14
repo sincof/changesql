@@ -90,3 +90,18 @@ class Task implements Callable<Integer>{
 先写个小DEMO，然后再扩充。
 
 [Red Spider](http://concurrent.redspider.group/article/01/2.html)
+
+
+
+## 问题
+
+在我的本地跑，内存，cpu，网络都哦没有沾满，说明多线程可以开更多的线程
+
+## 错误
+
+1. 多线程恢复程序没有起到作用，bug了就直接bug了
+2. 多线程没有及时退出，这会导致我的所用时间大幅增长
+2. 错误连接，不会是我多次连接没有关闭，导致的把，但是报的bug是报文发过去了，但是没有回应？
+
+
+

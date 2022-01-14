@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="442ba158-a743-42a8-8f2a-70ef1d6e703d" name="changeSQL">
+        <fileTransfer rootFolder="/root" accessType="SFTP" host="101.35.82.61" port="22" sshConfigId="43664564-20ab-4190-81d6-568bf4da7a4d" sshConfig="root@101.35.82.61:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

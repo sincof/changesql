@@ -21,14 +21,15 @@ public class ThreadPoolManager {
     private DBManager dbManager;
     // 新建的连接池
     DBConnection dbconn;
-    public ThreadPoolManager(DBManager dbManager, DBConnection dbconn){
+
+    public ThreadPoolManager(DBManager dbManager, DBConnection dbconn) {
         this.dbManager = dbManager;
         this.dbconn = dbconn;
         assert dbconn != null;
     }
 
     // 利用线程池去管理多线程任务
-    public void runInsertTask() throws InterruptedException{
+    public void runInsertTask() throws InterruptedException {
         // 多线程启动
         ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
                 CORE_POOL_SIZE,
@@ -41,31 +42,42 @@ public class ThreadPoolManager {
         int runTasks = 0;
         DatabaseEntity[] dbEntity = new DatabaseEntity[CORE_POOL_SIZE];
         Future<Boolean>[] result = new Future[CORE_POOL_SIZE];
-        for(DatabaseEntity databaseEntity : dbManager.dbList){
-            if(runTasks < CORE_POOL_SIZE){
+        for (DatabaseEntity databaseEntity : dbManager.dbList) {
+            if (runTasks < CORE_POOL_SIZE) {
                 dbEntity[runTasks] = databaseEntity;
                 result[runTasks++] = poolExecutor.submit(new InsertByDatabase(databaseEntity, dbconn));
-            }else{
+            } else {
                 int finishPos = -1;
-                while(finishPos == -1){
-                    for(int i = 0; i < CORE_POOL_SIZE; i++){
-                        if(result[i].isCancelled()){
-                            result[i] = poolExecutor.submit(new InsertByDatabase(dbEntity[i], dbconn));
-                        }
-                        if(result[i].isDone()){
-                            finishPos = i;
-                            break;
-                        }
+//                while(finishPos == -1){
+//                    for(int i = 0; i < CORE_POOL_SIZE; i++){
+//                        if(result[i].isCancelled()){
+//                            result[i] = poolExecutor.submit(new InsertByDatabase(dbEntity[i], dbconn));
+//                        }
+//                        if(result[i].isDone()){
+//                            finishPos = i;
+//                            break;
+//                        }
+//                    }
+//                }
+                for (int i = 0; i < CORE_POOL_SIZE; i++) {
+                    if (result[i].isCancelled()) {
+                        result[i] = poolExecutor.submit(new InsertByDatabase(dbEntity[i], dbconn));
+                    }
+                    if (result[i].isDone()) {
+                        finishPos = i;
+                        break;
                     }
                 }
-                dbEntity[finishPos] = databaseEntity;
-                result[finishPos] = poolExecutor.submit(new InsertByDatabase(databaseEntity, dbconn));
+                if (finishPos != -1) {
+                    dbEntity[finishPos] = databaseEntity;
+                    result[finishPos] = poolExecutor.submit(new InsertByDatabase(databaseEntity, dbconn));
+                }
                 // 休眠一会 避免一直循环，占用CPU
                 Thread.sleep(1000);
             }
         }
         poolExecutor.shutdown();
-        while(!poolExecutor.awaitTermination(10, TimeUnit.SECONDS)){
+        while (!poolExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
             System.out.println("Wait for poolExecutor finished");
         }
     }
