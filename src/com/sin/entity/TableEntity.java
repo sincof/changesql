@@ -26,6 +26,7 @@ public class TableEntity {
     }
 
     public void createTBDefine(String statement) {
+        System.out.println(statement);
         statement = statement.replaceAll("\\n", "");
 //        statement = statement.replaceAll("`","");
         try {
@@ -41,6 +42,7 @@ public class TableEntity {
     }
 
     public void addTBDefine(String createStatement) {
+        System.out.println(createStatement);
         try {
             CreateTable otherCreateTable = (CreateTable) CCJSqlParserUtil.parse(createStatement);
             for (ColumnDefinition col : otherCreateTable.getColumnDefinitions()) {
