@@ -4,6 +4,7 @@ import com.mysql.cj.xdevapi.Table;
 import com.sin.entity.DatabaseEntity;
 import com.sin.entity.TableEntity;
 import com.zaxxer.hikari.HikariDataSource;
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.schema.Database;
 
 import java.io.BufferedReader;
@@ -80,11 +81,11 @@ public class DBManager {
                     br.close();
 
                     if (!dbEntity.tableEntityMap.containsKey(fname[0])) {
-                        // 创建新的表的实体
-                        TableEntity table = new TableEntity(fname[0], String.valueOf(buf, 0, len));
-                        table.tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
-                        // 塞到map里面去
-                        dbEntity.tableEntityMap.put(fname[0], table);
+                            // 创建新的表的实体
+                            TableEntity table = new TableEntity(fname[0], String.valueOf(buf, 0, len));
+                            table.tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
+                            // 塞到map里面去
+                            dbEntity.tableEntityMap.put(fname[0], table);
                     } else {
                         dbEntity.tableEntityMap.get(fname[0]).addTBDefine(String.valueOf(buf, 0, len));
                         dbEntity.tableEntityMap.get(fname[0]).tableDataPath.add(dbPath + "/" + fname[0] + ".csv");

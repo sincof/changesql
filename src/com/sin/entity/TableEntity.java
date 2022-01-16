@@ -35,6 +35,7 @@ public class TableEntity {
                 columnDefinitionMap.put(col.getColumnName(), col);
             }
         } catch (JSQLParserException e) {
+            System.out.println(statement);
             e.printStackTrace();
         }
     }
@@ -49,6 +50,7 @@ public class TableEntity {
                 }
             }
         } catch (JSQLParserException e) {
+            System.out.println(createStatement);
             e.printStackTrace();
         }
     }

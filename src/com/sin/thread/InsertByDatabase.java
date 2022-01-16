@@ -87,7 +87,7 @@ public class InsertByDatabase implements Callable<Boolean> {
                     PreparedStatement insertStatement = connection.prepareStatement(insertSB.toString());
 
                     // 对所有插入的语句进行一个个计数
-                    int cnt = 0;
+                    int updateCnt = 0, insertCnt = 0;
                     // 100000的内存可能会用的有点多，待会观察下运行内存被占用了多少
 //                    List<String[]> dataList = new ArrayList<>(100000);
                     for (String dataPath : curTable.tableDataPath) {
