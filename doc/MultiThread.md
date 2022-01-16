@@ -67,7 +67,7 @@ class Task implements Callable<Integer>{
         Thread.sleep(1000);
         return 2;
     }
-    public static void main(String args[]) throws Exception {
+    public static void run(String args[]) throws Exception {
         // 使用
         ExecutorService executor = Executors.newCachedThreadPool();
         Task task = new Task();

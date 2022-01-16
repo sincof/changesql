@@ -17,6 +17,7 @@ public class TableEntity {
     public List<String> columns;
     public Map<String, ColumnDefinition> columnDefinitionMap;
     public CreateTable createTable;
+    public boolean isKey;
 
     public TableEntity(String name, String createTableStatement) {
         this.tableDataPath = new LinkedList<>();
@@ -30,6 +31,12 @@ public class TableEntity {
         // n order to get rid of the row change character
         // statement = statement.replaceAll("\\n", "");
         // statement = statement.replaceAll("`","");
+        if(statement.contains("KEY") && !statement.contains("PRIMARY")){
+            // It is hard to type the chinese in the ubuntu so only english...
+            // JSQLParser has a error in parsing the statement with KEY
+            statement = statement.replaceFirst("KEY", "PRIMARY KEY");
+            isKey = true;
+        }
         try {
             this.createTable = (CreateTable) CCJSqlParserUtil.parse(statement);
             for (ColumnDefinition col : this.createTable.getColumnDefinitions()) {
@@ -43,6 +50,12 @@ public class TableEntity {
     }
 
     public void addTBDefine(String createStatement) {
+        if(createStatement.contains("KEY") && !createStatement.contains("PRIMARY")){
+            // It is hard to type the chinese in the ubuntu so only english...
+            // JSQLParser has a error in parsing the statement with KEY
+            createStatement = createStatement.replaceFirst("KEY", "PRIMARY KEY");
+            isKey = true;
+        }
 //        System.out.println(createStatement);
         try {
             CreateTable otherCreateTable = (CreateTable) CCJSqlParserUtil.parse(createStatement);

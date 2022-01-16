@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class Main {
+public class run {
     @Parameter(names = {"--data_path"}, description = "dir path of source data")
     public String DataPath = "";
 
@@ -36,14 +36,14 @@ public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        Main main = new Main();
+        run run = new run();
         //parse cmd
-        JCommander jc = JCommander.newBuilder().addObject(main).build();
+        JCommander jc = JCommander.newBuilder().addObject(run).build();
         jc.parse(args);
 
-        DBConnection dbconn = new DBConnection(main.DstIP, main.DstPort, main.DstUser, main.DstPassword);
+        DBConnection dbconn = new DBConnection(run.DstIP, run.DstPort, run.DstUser, run.DstPassword);
         // 其实后面可以到到多线程在创建数据库，这里创建也行，没差
-        DBManager dbManager = new DBManager(main.DataPath); // 获取所有的数据库信息
+        DBManager dbManager = new DBManager(run.DataPath); // 获取所有的数据库信息
         try(Connection conn = dbconn.connectDB();){
             dbManager.createDB(conn); // 创建数据表和数据库
         } catch (SQLException sqle){

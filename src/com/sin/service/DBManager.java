@@ -81,12 +81,12 @@ public class DBManager {
                     br.close();
 
                     if (!dbEntity.tableEntityMap.containsKey(fname[0])) {
-                            // 创建新的表的实体
-                            TableEntity table = new TableEntity(fname[0], String.valueOf(buf, 0, len));
-                            table.tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
-                            // 塞到map里面去
-                            dbEntity.tableEntityMap.put(fname[0], table);
-                    } else if(len != -1){
+                        // 创建新的表的实体
+                        TableEntity table = new TableEntity(fname[0], String.valueOf(buf, 0, len));
+                        table.tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
+                        // 塞到map里面去
+                        dbEntity.tableEntityMap.put(fname[0], table);
+                    } else if (len != -1) {
                         dbEntity.tableEntityMap.get(fname[0]).addTBDefine(String.valueOf(buf, 0, len));
                         dbEntity.tableEntityMap.get(fname[0]).tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
                     }
@@ -113,14 +113,20 @@ public class DBManager {
                 // 先在这里写吧，后续由于我是统一利用databaseEntity储存的也比较好修改
                 DatabaseEntity databaseEntity = dbStore.get(databaseName);
                 Iterator<TableEntity> TIt = databaseEntity.tableEntityMap.values().iterator();
-                while (TIt.hasNext()) {
-                    try (Statement createTBStatement = conn.createStatement()) {
+                try (Statement createTBStatement = conn.createStatement()) {
+                    while (TIt.hasNext()) {
                         TableEntity tableEntity = TIt.next();
-                        createTBStatement.execute(tableEntity.createTable.toString());
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                        return -1;
+                        if (!tableEntity.isKey) {
+                            createTBStatement.addBatch(tableEntity.createTable.toString());
+                        } else {
+                            createTBStatement.addBatch(tableEntity.createTable.toString().replaceFirst("PRIMARY KEY", "KEY"));
+                        }
                     }
+                    createTBStatement.executeBatch();
+                }catch (SQLException e){
+
+                    e.printStackTrace();
+                    return -1;
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
