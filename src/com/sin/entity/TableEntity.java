@@ -26,9 +26,10 @@ public class TableEntity {
     }
 
     public void createTBDefine(String statement) {
-        System.out.println(statement);
-        statement = statement.replaceAll("\\n", "");
-//        statement = statement.replaceAll("`","");
+        // System.out.println(statement);
+        // n order to get rid of the row change character
+        // statement = statement.replaceAll("\\n", "");
+        // statement = statement.replaceAll("`","");
         try {
             this.createTable = (CreateTable) CCJSqlParserUtil.parse(statement);
             for (ColumnDefinition col : this.createTable.getColumnDefinitions()) {
@@ -42,7 +43,7 @@ public class TableEntity {
     }
 
     public void addTBDefine(String createStatement) {
-        System.out.println(createStatement);
+//        System.out.println(createStatement);
         try {
             CreateTable otherCreateTable = (CreateTable) CCJSqlParserUtil.parse(createStatement);
             for (ColumnDefinition col : otherCreateTable.getColumnDefinitions()) {

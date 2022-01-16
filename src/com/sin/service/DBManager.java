@@ -86,7 +86,7 @@ public class DBManager {
                             table.tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
                             // 塞到map里面去
                             dbEntity.tableEntityMap.put(fname[0], table);
-                    } else {
+                    } else if(len != -1){
                         dbEntity.tableEntityMap.get(fname[0]).addTBDefine(String.valueOf(buf, 0, len));
                         dbEntity.tableEntityMap.get(fname[0]).tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
                     }
