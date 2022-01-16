@@ -40,7 +40,7 @@ public class InsertByDatabase implements Callable<Boolean> {
 
             for (TableEntity curTable : databaseEntity.tableEntityMap.values()) {
                 String tableName = curTable.createTable.getTable().getName();
-//                String tableName = curTable.name;
+                // String tableName = curTable.name;
                 // 判断是否有唯一索引或者主键
                 List<Index> list = curTable.createTable.getIndexes();
                 // 获取主键的列的名字，主键可能包含多个列
@@ -78,14 +78,14 @@ public class InsertByDatabase implements Callable<Boolean> {
                     for (String name : curTable.columns) {
                         updateSB.append(name).append("=?,");
                         insertSB.append("?,");
-                        if("updated_at".equals(name.toLowerCase(Locale.ROOT))){
+                        if (name.toLowerCase(Locale.ROOT).contains("updated_at")) {
                             updatedatIndex = columnCnt;
                         }
                         columnCnt++;
                     }
                     // 把updateSB的最后一个逗号删除掉，然后添加where 语句
                     updateSB.deleteCharAt(updateSB.length() - 1);
-                     updateSB.append(" where ").append(primaryStat);
+                    updateSB.append(" where ").append(primaryStat);
                     // updateSB.append(" where ").append(primaryStat).append(";"); // he last ; would like to lead error in the batch execute
                     // 把insertSB的最后一个逗号删除掉，然后添加) 语句
                     insertSB.deleteCharAt(insertSB.length() - 1);
@@ -118,14 +118,14 @@ public class InsertByDatabase implements Callable<Boolean> {
                             if (resultSet.next()) {
                                 // 结果集中存在数据 更新数据
                                 String updated_at = resultSet.getString(1);
-                                try{
+                                try {
                                     // < 0 is updated_at is before the data[updatedatIndex]
                                     // > 0 is updated_at is after the data[updatedatIndex]
-                                    if(compareTime(updated_at, data[updatedatIndex]) < 0){
+                                    if (compareTime(updated_at, data[updatedatIndex]) < 0) {
                                         updateStatement.addBatch();
                                         updateCnt++;
                                     }
-                                }catch (ParseException pe){
+                                } catch (ParseException pe) {
                                     System.out.println("updated_at in DB: " + updated_at + ", updated_at in data: " + data[updatedatIndex]);
                                     pe.printStackTrace();
                                 }
@@ -142,19 +142,19 @@ public class InsertByDatabase implements Callable<Boolean> {
                             }
                             resultSet.close();
                             line = br.readLine();
-                            if(updateCnt >= 100000){
+                            if (updateCnt >= 100000) {
                                 updateStatement.executeBatch();
                             }
-                            if(insertCnt >= 100000){
+                            if (insertCnt >= 100000) {
                                 insertStatement.executeBatch();
                             }
                         }
                         br.close();
                     }
-                    if(updateCnt != 0){
+                    if (updateCnt != 0) {
                         updateStatement.executeBatch();
                     }
-                    if(insertCnt != 0){
+                    if (insertCnt != 0) {
                         insertStatement.executeBatch();
                     }
                     try {
@@ -168,11 +168,11 @@ public class InsertByDatabase implements Callable<Boolean> {
                     // 在tableEntity中，createTable只在第一次的时候更新过，后面的更新都记录在Map里面
                     StringBuilder selectSB = new StringBuilder("select updated_at from " + tableName + "where ");
                     StringBuilder insertSB = new StringBuilder("insert into " + tableName + " values (");
-                    int updated_atIndex = 0, cnt = 0;
+                    int updatedatIndex = 0, cnt = 0;
                     for (String name : curTable.columns) {
                         insertSB.append("?,");
-                        if ("updated_at".equals(name)) {
-                            updated_atIndex = cnt;
+                        if (name.toLowerCase(Locale.ROOT).contains("updated_at")) {
+                            updatedatIndex = cnt;
                         } else
                             selectSB.append(name).append("=?,");
                         cnt++;
@@ -198,9 +198,9 @@ public class InsertByDatabase implements Callable<Boolean> {
                             data = line.split(",");
                             for (int i = 0; i < data.length; i++) {
                                 insertStatement.setString(i + 1, data[i]);
-                                if (i < updated_atIndex)
+                                if (i < updatedatIndex)
                                     selectStatement.setString(i + 1, data[i]);
-                                else if (i == updated_atIndex)
+                                else if (i == updatedatIndex)
                                     updateStatement.setString(1, data[i]);
                                 else selectStatement.setString(i, data[i]);
                             }
@@ -215,18 +215,18 @@ public class InsertByDatabase implements Callable<Boolean> {
                                 //insertStatement.execute();
                             }
                             line = br.readLine();
-                            if(updateCnt >= 100000){
+                            if (updateCnt >= 100000) {
                                 updateStatement.executeBatch();
                             }
-                            if(insertCnt >= 100000){
+                            if (insertCnt >= 100000) {
                                 insertStatement.executeBatch();
                             }
                         }
                         br.close();
-                        if(updateCnt != 0){
+                        if (updateCnt != 0) {
                             updateStatement.executeBatch();
                         }
-                        if(insertCnt != 0){
+                        if (insertCnt != 0) {
                             insertStatement.executeBatch();
                         }
                     }
