@@ -8,13 +8,19 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import javax.xml.crypto.Data;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +37,23 @@ public class InsertByDatabaseTest {
     String DstPassword = "changesql";
 
     DBConnection dbConnection = new DBConnection(DstIP, DstPort, DstUser, DstPassword);
+
+    @Test
+    public void timeTest() throws ParseException {
+        String[] sqltime = new String[]{"2021-03-30 04:30:27","2021-07-18 22:43:04",
+                "2021-08-29 18:57:43","2021-09-03 16:57:37","2021-10-18 13:02:10",  "2021-12-11 10:02:42"};
+        for(int i = 0; i < sqltime.length - 1; i++){
+            Assertions.assertTrue(compareTime(sqltime[i], sqltime[i + 1]) < 0);
+        }
+    }
+
+    // a < b: return true
+    // a > b: return false
+    public int compareTime(String oriS, String newS) throws ParseException {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        Date oriD = df.parse(oriS), newD = df.parse(newS);
+        return oriD.compareTo(newD);
+    }
 
     // 对于查询测试 使用多个主键的来测试
     @Test

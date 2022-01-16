@@ -11,6 +11,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -68,16 +70,23 @@ public class InsertByDatabase implements Callable<Boolean> {
                     }
                 }
                 if (primaryorUniqueKey) {
+                    // need to record the updated_at index to use the update statement to update the table
+                    int updatedatIndex = 0, columnCnt = 0;
                     // 在tableEntity中，createTable只在第一次的时候更新过，后面的更新都记录在Map里面
                     StringBuilder updateSB = new StringBuilder("update " + tableName + " set ");
                     StringBuilder insertSB = new StringBuilder("insert into " + tableName + " values (");
                     for (String name : curTable.columns) {
                         updateSB.append(name).append("=?,");
                         insertSB.append("?,");
+                        if("updated_at".equals(name.toLowerCase(Locale.ROOT))){
+                            updatedatIndex = columnCnt;
+                        }
+                        columnCnt++;
                     }
                     // 把updateSB的最后一个逗号删除掉，然后添加where 语句
                     updateSB.deleteCharAt(updateSB.length() - 1);
-                    updateSB.append(" where ").append(primaryStat).append(";");
+                     updateSB.append(" where ").append(primaryStat);
+                    // updateSB.append(" where ").append(primaryStat).append(";"); // he last ; would like to lead error in the batch execute
                     // 把insertSB的最后一个逗号删除掉，然后添加) 语句
                     insertSB.deleteCharAt(insertSB.length() - 1);
                     insertSB.append(")");
@@ -88,8 +97,6 @@ public class InsertByDatabase implements Callable<Boolean> {
 
                     // 对所有插入的语句进行一个个计数
                     int updateCnt = 0, insertCnt = 0;
-                    // 100000的内存可能会用的有点多，待会观察下运行内存被占用了多少
-//                    List<String[]> dataList = new ArrayList<>(100000);
                     for (String dataPath : curTable.tableDataPath) {
                         BufferedReader br = new BufferedReader(new FileReader(dataPath));
                         String line = br.readLine();
@@ -111,19 +118,44 @@ public class InsertByDatabase implements Callable<Boolean> {
                             if (resultSet.next()) {
                                 // 结果集中存在数据 更新数据
                                 String updated_at = resultSet.getString(1);
+                                try{
+                                    // < 0 is updated_at is before the data[updatedatIndex]
+                                    // > 0 is updated_at is after the data[updatedatIndex]
+                                    if(compareTime(updated_at, data[updatedatIndex]) < 0){
+                                        updateStatement.addBatch();
+                                        updateCnt++;
+                                    }
+                                }catch (ParseException pe){
+                                    System.out.println("updated_at in DB: " + updated_at + ", updated_at in data: " + data[updatedatIndex]);
+                                    pe.printStackTrace();
+                                }
                                 // 判断是否更新的函数还没写，默认更新
                                 // TODO: ERROR Duplicate entry '1784783537-595.527' for key '1.PRIMARY'
                                 // 1. 数据库中存在了和插入数据一样的主键，但是没有查询出来
                                 // 2. 盲猜就是数据精度出现了问题，虽然没有查询到主键，但是实际上插入的时候却会报这个错误
-                                updateStatement.execute();
+                                // updateStatement.execute();
                             } else {
                                 // 没有结果 就插入数据
-                                insertStatement.execute();
+                                // insertStatement.execute();
+                                insertStatement.addBatch();
+                                insertCnt++;
                             }
                             resultSet.close();
                             line = br.readLine();
+                            if(updateCnt >= 100000){
+                                updateStatement.executeBatch();
+                            }
+                            if(insertCnt >= 100000){
+                                insertStatement.executeBatch();
+                            }
                         }
                         br.close();
+                    }
+                    if(updateCnt != 0){
+                        updateStatement.executeBatch();
+                    }
+                    if(insertCnt != 0){
+                        insertStatement.executeBatch();
                     }
                     try {
                         insertStatement.close();
@@ -142,7 +174,7 @@ public class InsertByDatabase implements Callable<Boolean> {
                         if ("updated_at".equals(name)) {
                             updated_atIndex = cnt;
                         } else
-                            selectSB.append(name + "=?,");
+                            selectSB.append(name).append("=?,");
                         cnt++;
                     }
                     // 把insertSB的最后一个逗号删除掉，然后添加)
@@ -157,9 +189,7 @@ public class InsertByDatabase implements Callable<Boolean> {
                     PreparedStatement insertStatement = connection.prepareStatement(insertSB.toString());
 
                     // 对所有插入的语句进行一个个计数
-//                    int cnt = 0;
-                    // 100000的内存可能会用的有点多，待会观察下运行内存被占用了多少
-//                    List<String[]> dataList = new ArrayList<>(100000);
+                    int updateCnt = 0, insertCnt = 0;
                     for (String dataPath : curTable.tableDataPath) {
                         BufferedReader br = new BufferedReader(new FileReader(dataPath));
                         String line = br.readLine();
@@ -172,18 +202,33 @@ public class InsertByDatabase implements Callable<Boolean> {
                                     selectStatement.setString(i + 1, data[i]);
                                 else if (i == updated_atIndex)
                                     updateStatement.setString(1, data[i]);
-                                else if(i > updated_atIndex)
-                                    selectStatement.setString(i, data[i]);
+                                else selectStatement.setString(i, data[i]);
                             }
                             ResultSet resultSet = selectStatement.executeQuery();
                             if (resultSet.next()) {
-                                updateStatement.execute();
+                                updateStatement.addBatch();
+                                updateCnt++;
+                                // updateStatement.execute();
                             } else {
-                                insertStatement.execute();
+                                insertStatement.addBatch();
+                                insertCnt++;
+                                //insertStatement.execute();
                             }
                             line = br.readLine();
+                            if(updateCnt >= 100000){
+                                updateStatement.executeBatch();
+                            }
+                            if(insertCnt >= 100000){
+                                insertStatement.executeBatch();
+                            }
                         }
                         br.close();
+                        if(updateCnt != 0){
+                            updateStatement.executeBatch();
+                        }
+                        if(insertCnt != 0){
+                            insertStatement.executeBatch();
+                        }
                     }
                     try {
                         insertStatement.close();
@@ -199,5 +244,13 @@ public class InsertByDatabase implements Callable<Boolean> {
             return false;
         }
         return true;
+    }
+
+    // a < b: return true
+    // a > b: return false
+    public int compareTime(String oriS, String newS) throws ParseException {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        Date oriD = df.parse(oriS), newD = df.parse(newS);
+        return oriD.compareTo(newD);
     }
 }
