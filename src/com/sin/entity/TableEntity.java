@@ -14,12 +14,14 @@ public class TableEntity {
     public List<String> tableDataPath;
 
     // 表格属性
+    public final String name;
     public List<String> columns;
     public Map<String, ColumnDefinition> columnDefinitionMap;
     public CreateTable createTable;
     public boolean isKey;
 
     public TableEntity(String name, String createTableStatement) {
+        this.name = name;
         this.tableDataPath = new LinkedList<>();
         this.columns = new LinkedList<String>();
         this.columnDefinitionMap = new HashMap<String, ColumnDefinition>();

@@ -102,6 +102,7 @@ public class InsertByDatabase implements Callable<Boolean> {
                     // 对所有插入的语句进行一个个计数
                     int updateCnt = 0, insertCnt = 0;
                     for (String dataPath : curTable.tableDataPath) {
+                        long start = System.currentTimeMillis();
                         BufferedReader br = new BufferedReader(new FileReader(dataPath));
                         String line = br.readLine();
                         String[] data;
@@ -148,14 +149,15 @@ public class InsertByDatabase implements Callable<Boolean> {
                                 resultSet.close();
                             }
                             line = br.readLine();
-                            if (updateCnt >= 10000) {
+                            if (updateCnt >= 50000) {
                                 updateStatement.executeBatch();
                             }
-                            if (insertCnt >= 10000) {
+                            if (insertCnt >= 50000) {
                                 insertStatement.executeBatch();
                             }
                         }
                         br.close();
+
                     }
                     if (updateCnt != 0) {
                         updateStatement.executeBatch();
@@ -182,18 +184,19 @@ public class InsertByDatabase implements Callable<Boolean> {
                             updatedatIndex = cnt;
                         } else {
                             selectSB.append(name).append("=? and");
-                            updateSB.append(name).append("=?,");
+                            updateSB.append(name).append("=? and");
                         }
                         cnt++;
                     }
                     // 把insertSB的最后一个逗号删除掉，然后添加)
                     insertSB.deleteCharAt(insertSB.length() - 1);
                     insertSB.append(")");
-                    // 把selectSB的最后一个逗号删除掉 delete final `and`
+                    // 把selectSB delete final `and`
                     // selectSB.deleteCharAt(selectSB.length() - 1);
                     selectSB.delete(selectSB.length() - 3, selectSB.length());
-                    // 把updateSB的最后一个逗号删除掉
-                    updateSB.deleteCharAt(updateSB.length() - 1);
+                    // 把updateSB delete final `and`
+                    updateSB.delete(updateSB.length() - 3, updateSB.length());
+                    // updateSB.deleteCharAt(updateSB.length() - 1);
 
                     PreparedStatement selectStatement = connection.prepareStatement(selectSB.toString());
                     PreparedStatement updateStatement = connection.prepareStatement(updateSB.toString());
@@ -233,10 +236,10 @@ public class InsertByDatabase implements Callable<Boolean> {
                                 }
                             }
                             line = br.readLine();
-                            if (updateCnt >= 10000) {
+                            if (updateCnt >= 50000) {
                                 updateStatement.executeBatch();
                             }
-                            if (insertCnt >= 10000) {
+                            if (insertCnt >= 50000) {
                                 insertStatement.executeBatch();
                             }
                         }

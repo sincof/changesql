@@ -38,7 +38,56 @@
    -- 数据库中的结果 12345
    ```
 
-   
+### FLOAT
+
+in the mysql, the float data only save 6 point, such as the
+10.511242023999337   -> 10.5112
+10.511252023999337   -> 10.5113
+100.51124202399933   -> 100.511
+1234567890           -> 1234570000
+0.123456789          -> 0.123457
+float的精度 是一个很大的问题
+
+if you want to select from the database by the condition of (id , 1234567890) (suppose you have inserted the row with the id and the 12...)
+you will not able to select for (id ,1234567890) 
+
+[MYSQL FLOAT](https://dev.mysql.com/doc/internals/en/floating-point-types.html)
+
+### double
+0.123456789123456789 -> 
+0.12345678912345678
+
+10.511242023999337 ->
+10.511242023999335
+
+576.0974001178995 ->
+576.0974001178995
+
+12.5485555048078199 ->
+12.54855550480782
+
+double 不会进位么？ double wuold in some specific situation
+double 也存在进位问题，但是实质上虽然存在进位情况，也能正确查询出来
+
+
+
+    float单精度小数部分只能精确到后面6位，加上小数点前的一位，即有效数字为7位
+
+    double双精度小数部分能精确到小数点后的15位，加上小数点前的一位 有效位数为16位。
+
+    最后就区别出了小数点后边位数的长度，越长越精确!
+
+double 和 float 彼此的区别:
+
+    在内存中占有的字节数不同, 单精度内存占4个字节,  双精度内存占8个字节
+
+    有效数字位数不同(尾数)  单精度小数点后有效位数7位,  双精度小数点后有效位数16位
+
+    数值取值范围不同  根据IEEE标准来计算!
+
+    在程序中处理速度不同,一般来说，CPU处理单精度浮点数的速度比处理双精度浮点数快
+
+
 
 ### STRING类型
 
@@ -280,6 +329,9 @@ WHERE column_name operator value;
 ## 编写插入时候遇到的错误
 
 1. 如果要batch插入，最后结尾不能带有分割符’;‘，否则会报错
+
+2. 当主键为(bigint, float) 的时候会出现，即使这一行已经在数据库中了，但是利用原数据作为where的语句还是无法查询到结果的问题，导致插入出现duplicate primary key 的问题
+
 
 ## 编写程序的时候 项目里面的坑
 

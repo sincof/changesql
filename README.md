@@ -53,7 +53,10 @@ Service:
 ### 多线程版本
 
 1. 对应给定机器的核心数目，来确定线程的数目。
+
 2. 并行对不同的库进行插入，插入的过程和单线程版本相同
+
+3. we should insert by table, it is slow to insert by database.
 
 ## 注意的问题
 
