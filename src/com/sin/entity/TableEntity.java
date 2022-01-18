@@ -4,27 +4,46 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.create.table.Index;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TableEntity {
     public List<String> tableDataPath;
 
     // 表格属性
-    public final String name;
+    public String name;
+    public int columnLen;
     public List<String> columns;
     public Map<String, ColumnDefinition> columnDefinitionMap;
     public CreateTable createTable;
-    public boolean isKey;
+    public Set<Integer> keySet;
+    public Set<Integer> floatIndexSet;
+    // have key index? (not primary key index)
+    public boolean isKey = false;
+    // have Key? if we have key we should use the key to find the data
+    public boolean hasKey = false;
+    // have column in the key which the type is float
+    public int[] floatValueIndex;
+    // public int[] floatKeyName;
 
-    public TableEntity(String name, String createTableStatement) {
-        this.name = name;
+    // may be key / primary key index
+    // which columns in the data is the key
+    public int[] keyIndex;
+    // get the type of corresponding columns in the keyIndex
+    public String[] keyType;
+    // index of update in the columns
+    public int updatedatIndex = 3;
+
+    // PreparedStatement build string
+    public StringBuilder updateSB, insertSB, selectSB;
+
+    public TableEntity(String createTableStatement) {
         this.tableDataPath = new LinkedList<>();
         this.columns = new LinkedList<String>();
         this.columnDefinitionMap = new HashMap<String, ColumnDefinition>();
+        keySet = new HashSet<>();
+        floatIndexSet = new HashSet<>();
         createTBDefine(createTableStatement);
     }
 
@@ -33,7 +52,9 @@ public class TableEntity {
         // n order to get rid of the row change character
         // statement = statement.replaceAll("\\n", "");
         // statement = statement.replaceAll("`","");
-        if(statement.contains("KEY") && !statement.contains("PRIMARY")){
+        // because the JSQLParser have problem in parsing the sql statement
+        // with the key index and not with the primary key index
+        if (statement.contains("KEY") && !statement.contains("PRIMARY")) {
             // It is hard to type the chinese in the ubuntu so only english...
             // JSQLParser has a error in parsing the statement with KEY
             statement = statement.replaceFirst("KEY", "PRIMARY KEY");
@@ -41,9 +62,117 @@ public class TableEntity {
         }
         try {
             this.createTable = (CreateTable) CCJSqlParserUtil.parse(statement);
+            this.name = createTable.getTable().getName();
+//            List<Integer> floatIndex = new LinkedList<>();
+            int columnCnt = 0;
             for (ColumnDefinition col : this.createTable.getColumnDefinitions()) {
                 columns.add(col.getColumnName());
                 columnDefinitionMap.put(col.getColumnName(), col);
+
+                if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("flaot")) {
+                    floatIndexSet.add(columnCnt);
+//                    floatIndex.add(columnCnt);
+                }
+                columnCnt++;
+            }
+            this.columnLen = columnCnt;
+//            floatValueIndex = new int[floatIndex.size()];
+//            for (int i = 0; i < floatValueIndex.length; i++)
+//                floatValueIndex[i] = floatIndex.get(i);
+
+            // get the index of the table
+            List<Index> indexList = this.createTable.getIndexes();
+            // TODO: test whether the key is added in order
+            List<String> keyNameList = new LinkedList<>();
+            if (indexList != null) {
+                for (Index index : indexList) {
+                    String ins = index.getType().toLowerCase(Locale.ROOT);
+                    if (ins.contains("key")) {
+                        hasKey = true;
+                        keyNameList.addAll(index.getColumnsNames());
+                    }
+                }
+            }
+            // 有primark key的情况下，除了primary key的所在列全部更新
+            // 无primary key的情况下，只更新updated_at参数
+            if (hasKey) {
+                // initialize the array which store the index data
+                keyIndex = new int[keyNameList.size()];
+                keyType = new String[keyNameList.size()];
+
+                // construct insert, build, update string for prepared statement
+                updateSB = new StringBuilder("update " + name + " set ");
+                insertSB = new StringBuilder("insert into " + name + " values (");
+                selectSB = new StringBuilder("select updated_at from " + name + " where ");
+                columnCnt = 0;
+                boolean flag = true;
+                for (String col : columns) {
+                    for(String s : keyNameList)
+                        if (s.equals(col)) {
+                            flag = false;
+                            break;
+                        }
+                    if (flag)
+                        updateSB.append(col).append("=?, ");
+                    insertSB.append("?,");
+                    if (name.toLowerCase(Locale.ROOT).contains("updated_at")) {
+                        this.updatedatIndex = columnCnt;
+                    }
+                    columnCnt++;
+                }
+                // 把updateSB的最后一个逗号删除掉，然后添加where 语句
+                updateSB.deleteCharAt(updateSB.length() - 1);
+                updateSB.append(" where ");
+                // updateSB.append(" where ").append(primaryStat).append(";");
+                // the last ; would like to lead error in the batch execute
+                // 把insertSB的最后一个逗号删除掉，然后添加) 语句
+                insertSB.deleteCharAt(insertSB.length() - 1);
+                insertSB.append(")");
+
+                int keyIndextmp = 0;
+                for (String s : keyNameList) {
+                    if (keyIndextmp == 0) {
+                        selectSB.append(s).append(" =?");
+                        updateSB.append(s).append(" =?");
+                    } else {
+                        selectSB.append(" and ").append(s).append(" =?");
+                        updateSB.append(" and ").append(s).append(" =?");
+                    }
+                    int index = 0;
+                    for (ColumnDefinition col : this.createTable.getColumnDefinitions()) {
+                        if (s.equals(col.getColumnName())) {
+                            keySet.add(index);
+                            keyIndex[keyIndextmp] = index;
+                            keyType[keyIndextmp++] = col.getColDataType().getDataType();
+                        }
+                        index++;
+                    }
+                }
+            } else {
+                // do not have the key
+                selectSB = new StringBuilder("select updated_at from " + this.name + " where ");
+                updateSB = new StringBuilder("update " + this.name + " set updated_at = ? where ");
+                insertSB = new StringBuilder("insert into " + this.name + " values (");
+                int cnt = 0;
+                for (String name : this.columns) {
+                    insertSB.append("?,");
+                    if (name.toLowerCase(Locale.ROOT).contains("updated_at")) {
+                        this.updatedatIndex = cnt;
+                    } else {
+                        selectSB.append(name).append("=? and");
+                        updateSB.append(name).append("=? and");
+                    }
+                    cnt++;
+                }
+                // 把insertSB的最后一个逗号删除掉，然后添加)
+                insertSB.deleteCharAt(insertSB.length() - 1);
+                insertSB.append(")");
+                // 把selectSB delete final `and`
+                // selectSB.deleteCharAt(selectSB.length() - 1);
+                selectSB.delete(selectSB.length() - 3, selectSB.length());
+                // 把updateSB delete final `and`
+                updateSB.delete(updateSB.length() - 3, updateSB.length());
+                // updateSB.deleteCharAt(updateSB.length() - 1);
             }
         } catch (JSQLParserException e) {
             System.out.println(statement);
@@ -52,7 +181,7 @@ public class TableEntity {
     }
 
     public void addTBDefine(String createStatement) {
-        if(createStatement.contains("KEY") && !createStatement.contains("PRIMARY")){
+        if (createStatement.contains("KEY") && !createStatement.contains("PRIMARY")) {
             // It is hard to type the chinese in the ubuntu so only english...
             // JSQLParser has a error in parsing the statement with KEY
             createStatement = createStatement.replaceFirst("KEY", "PRIMARY KEY");
@@ -142,5 +271,10 @@ public class TableEntity {
             }
         }
         return false;
+    }
+
+    public Long getHashValue(String[] data) {
+        long ans = 0l;
+        return ans;
     }
 }

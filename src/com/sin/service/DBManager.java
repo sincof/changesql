@@ -71,7 +71,7 @@ public class DBManager {
                     if (fname.length != 2 || !"sql".equals(fname[1])) {
                         continue;
                     }
-
+                    System.out.println(dirs[i] + " : " + databaseDir[j] + " : " + fname[0]);
                     // 获取表定义文件的内容
                     File tableDefine = new File(dbPath + "/" + tablelist[k]);
                     // 利用 BufferedReader 去读取表定义文件
@@ -79,10 +79,15 @@ public class DBManager {
                     Arrays.fill(buf, '\0');
                     int len = br.read(buf, 0, 1024);
                     br.close();
-
+                    System.out.println(String.valueOf(buf, 0, len));
+                    BufferedReader dataBR = new BufferedReader(new FileReader(dbPath + "/" + fname[0] + ".csv"));
+                    System.out.println(dataBR.readLine());
+                    System.out.println(dataBR.readLine());
+                    dataBR.close();
+                    // 存不存在表名和sql定义表的名字不一样的情况？ should be the same
                     if (!dbEntity.tableEntityMap.containsKey(fname[0])) {
                         // 创建新的表的实体
-                        TableEntity table = new TableEntity(fname[0], String.valueOf(buf, 0, len));
+                        TableEntity table = new TableEntity(String.valueOf(buf, 0, len));
                         table.tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
                         // 塞到map里面去
                         dbEntity.tableEntityMap.put(fname[0], table);
@@ -123,7 +128,7 @@ public class DBManager {
                         }
                     }
                     createTBStatement.executeBatch();
-                }catch (SQLException e){
+                } catch (SQLException e) {
 
                     e.printStackTrace();
                     return -1;
