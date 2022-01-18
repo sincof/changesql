@@ -4,8 +4,10 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.sin.service.DBConnection;
 import com.sin.service.DBManager;
+import com.sin.service.ProgramStatus;
 import com.sin.thread.ThreadPoolManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -26,12 +28,12 @@ public class run {
     @Parameter(names = {"--dst_password"}, description = "password of dst database")
     public String DstPassword = "";
 
-    public static final int DEFAULT_THREADS = 4;
-    // 线程池的参数
-    private static final int CORE_POOL_SIZE = 4;
-    private static final int MAX_POOL_SIZE = 8192;
-    private static final int QUEUE_CAPACITY = 8192;
-    private static final long KEEP_ALIVE_TIME = 100 * 60;
+//    public static final int DEFAULT_THREADS = 4;
+//    // 线程池的参数
+//    private static final int CORE_POOL_SIZE = 4;
+//    private static final int MAX_POOL_SIZE = 8192;
+//    private static final int QUEUE_CAPACITY = 8192;
+//    private static final long KEEP_ALIVE_TIME = 100 * 60;
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -44,13 +46,52 @@ public class run {
         DBConnection dbconn = new DBConnection(run.DstIP, run.DstPort, run.DstUser, run.DstPassword);
         // 其实后面可以到到多线程在创建数据库，这里创建也行，没差
         DBManager dbManager = new DBManager(run.DataPath); // 获取所有的数据库信息
-        try(Connection conn = dbconn.connectDB()){
-            dbManager.createDB(conn); // 创建数据表和数据库
-        } catch (SQLException sqle){
-            sqle.printStackTrace();
+
+        int status = ProgramStatus.getProgramStatus();
+        switch (status) {
+            case (-1) -> {
+                System.out.println("LOG: First run! (null -> 1)");
+                try (Connection conn = dbconn.connectDB()) {
+                    dbManager.createDB(conn); // 创建数据表和数据库
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
+                }
+                ProgramStatus.finishWR();
+                System.out.println("LOG: Finish creating table (null -> 1 -> 2)");
+            }
+            case (1) -> {
+                System.out.println("LOG: Second run! (1 -> 3)");
+                try (Connection conn = dbconn.connectDB()) {
+                    dbManager.createDB(conn); // 创建数据表和数据库
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
+                }
+                ProgramStatus.finishWR();
+                System.out.println("LOG: Finish creating table (1 -> 3 -> 4)");
+            }
+            case (2) -> {
+                System.out.println("LOG: Second run! (2 -> 4)");
+                ProgramStatus.finishWR();
+                System.out.println("LOG: I am status 2 with database & table (2 -> 4)");
+            }
+            case (3) -> {
+                // second run without creating the database & table
+                System.out.println("LOG: Third run!");
+                try (Connection conn = dbconn.connectDB()) {
+                    dbManager.createDB(conn); // 创建数据表和数据库
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
+                }
+                // insert
+                ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
+                threadPoolManager.runInsertTaskByTableHash();
+            }
+            case (4) -> {
+                // insert
+                ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
+                threadPoolManager.runInsertTaskByTableHash();
+            }
         }
-        ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
-        threadPoolManager.runInsertTaskByTable();
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
 }
