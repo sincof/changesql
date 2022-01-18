@@ -71,7 +71,7 @@ public class TableEntity {
                 columns.add(col.getColumnName());
                 columnDefinitionMap.put(col.getColumnName(), col);
 
-                if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("flaot")) {
+                if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("float")) {
                     // floatIndexSet.add(columnCnt);
                     colIsFloat[columnCnt] = true;
                 }
@@ -109,6 +109,7 @@ public class TableEntity {
                 columnCnt = 0;
                 boolean flag = true;
                 for (String col : columns) {
+                    flag = true;
                     for (String s : keyNameList)
                         if (s.equals(col)) {
                             flag = false;

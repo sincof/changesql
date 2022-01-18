@@ -1,5 +1,6 @@
 package com.sin.service;
 
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
@@ -7,14 +8,22 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    private static String url;
-    private static String user;
-    private static String passwd;
     private HikariDataSource ds;
+    private static HikariConfig config = new HikariConfig();
 
 
     static {
         try{
+            config.addDataSourceProperty("cachePrepStmts", "true");
+            config.addDataSourceProperty("prepStmtCacheSize", "1000");
+            config.addDataSourceProperty("prepStmtCacheSqlLimit","1024");
+            config.addDataSourceProperty("useServerPrepStmts", "true");
+            config.addDataSourceProperty("useLocalSessionState", "true");
+            config.addDataSourceProperty("rewriteBatchedStatements", "true");
+            config.addDataSourceProperty("cacheResultSetMetadata", "true");
+            config.addDataSourceProperty("cacheServerConfiguration", "true");
+            config.addDataSourceProperty("maintainTimeStats", "false");
+            config.addDataSourceProperty("elideSetAutoCommits", "true");
             String DRIVER = "com.mysql.cj.jdbc.Driver";
             Class.forName(DRIVER);
         }catch (ClassNotFoundException e){
@@ -23,14 +32,12 @@ public class DBConnection {
     }
 
     public DBConnection(String ip, String port, String user, String passwd){
-        DBConnection.url = "jdbc:mysql://" + ip + ":" + port + "/?characterEncoding=utf-8&useSSL=false&serverTimezone=Hongkong&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true";
-        DBConnection.user = user;
-        DBConnection.passwd = passwd;
-        ds = new HikariDataSource();
-        ds.setJdbcUrl(url);
-        ds.setUsername(user);
-        ds.setPassword(passwd);
-        ds.setConnectionTimeout(6000*1000);
+        config.setJdbcUrl("jdbc:mysql://" + ip + ":" + port + "/?characterEncoding=utf-8&useSSL=false&serverTimezone=Hongkong&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true");
+        config.setUsername(user);
+        config.setPassword(passwd);
+        ds = new HikariDataSource(config);
+//        ds.setConnectionTimeout(6000*1000);
+//        ds.setAutoCommit(true);
     }
 
     public Connection connectDB() throws SQLException {

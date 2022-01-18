@@ -347,6 +347,8 @@ WHERE column_name operator value;
 
 3. **Always close Statement, PreparedStatement, and Connection.**
 
+4. [MySQL中float、double、decimal三个浮点类型的区别与总结](https://bbs.huaweicloud.com/forum/thread-90199-1-1.html)
+
    
 
 
@@ -362,3 +364,11 @@ WHERE column_name operator value;
    
 
 1. 还有一个问题，就是连接直接失效，无法连接上数据库，不知道为什么。
+   好像tdsql 外网连接有点问题。。。。
+2. 一些mysql性能优化的stackoverflow的链接
+   https://stackoverflow.com/questions/25850569/improve-jdbc-performance
+   https://stackoverflow.com/questions/31471984/how-to-improve-the-select-query-performance-in-java-is-there-a-way-to-do-selec
+   https://stackoverflow.com/questions/50089761/how-to-improve-performance-of-jdbc-query-execution
+   https://stackoverflow.com/questions/24171653/mysql-select-performance-issue-with-jdbc
+   https://stackoverflow.com/questions/2993251/jdbc-batch-insert-performance
+   https://stackoverflow.com/questions/23120584/why-does-mysql-round-floats-way-more-than-expected
