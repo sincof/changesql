@@ -44,13 +44,13 @@ public class run {
         DBConnection dbconn = new DBConnection(run.DstIP, run.DstPort, run.DstUser, run.DstPassword);
         // 其实后面可以到到多线程在创建数据库，这里创建也行，没差
         DBManager dbManager = new DBManager(run.DataPath); // 获取所有的数据库信息
-        try(Connection conn = dbconn.connectDB();){
+        try(Connection conn = dbconn.connectDB()){
             dbManager.createDB(conn); // 创建数据表和数据库
         } catch (SQLException sqle){
             sqle.printStackTrace();
         }
         ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
-        threadPoolManager.runInsertTaskByTableHash();
+        threadPoolManager.runInsertTaskByTable();
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
 }
