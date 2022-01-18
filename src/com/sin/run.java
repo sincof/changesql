@@ -50,7 +50,7 @@ public class run {
             sqle.printStackTrace();
         }
         ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
-        threadPoolManager.runInsertTaskByTable();
+        threadPoolManager.runInsertTaskByTableHash();
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
 }

@@ -45,7 +45,7 @@ public class tableEntityTest {
             sql5 = sql3.replaceFirst("KEY", "PRIMARY KEY");
         }
         String sql4 = " create table test.json_test (c1 int primary key, c2 varchar(20) not null, c3 json default null );";
-        TableEntity tableEntity = new TableEntity("a", sql5);
+        TableEntity tableEntity = new TableEntity(sql5);
         System.out.println();
     }
 }

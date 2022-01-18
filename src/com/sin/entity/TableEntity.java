@@ -18,14 +18,15 @@ public class TableEntity {
     public Map<String, ColumnDefinition> columnDefinitionMap;
     public CreateTable createTable;
     public Set<Integer> keySet;
-    public Set<Integer> floatIndexSet;
+    // public Set<Integer> floatIndexSet;
     // have key index? (not primary key index)
     public boolean isKey = false;
     // have Key? if we have key we should use the key to find the data
     public boolean hasKey = false;
     // have column in the key which the type is float
-    public int[] floatValueIndex;
+    // public int[] floatValueIndex;
     // public int[] floatKeyName;
+    private boolean[] colIsFloat;
 
     // may be key / primary key index
     // which columns in the data is the key
@@ -43,7 +44,8 @@ public class TableEntity {
         this.columns = new LinkedList<String>();
         this.columnDefinitionMap = new HashMap<String, ColumnDefinition>();
         keySet = new HashSet<>();
-        floatIndexSet = new HashSet<>();
+        // floatIndexSet = new HashSet<>();
+        colIsFloat = new boolean[20];
         createTBDefine(createTableStatement);
     }
 
@@ -70,8 +72,8 @@ public class TableEntity {
                 columnDefinitionMap.put(col.getColumnName(), col);
 
                 if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("flaot")) {
-                    floatIndexSet.add(columnCnt);
-//                    floatIndex.add(columnCnt);
+                    // floatIndexSet.add(columnCnt);
+                    colIsFloat[columnCnt] = true;
                 }
                 columnCnt++;
             }
@@ -107,7 +109,7 @@ public class TableEntity {
                 columnCnt = 0;
                 boolean flag = true;
                 for (String col : columns) {
-                    for(String s : keyNameList)
+                    for (String s : keyNameList)
                         if (s.equals(col)) {
                             flag = false;
                             break;
@@ -187,7 +189,7 @@ public class TableEntity {
             createStatement = createStatement.replaceFirst("KEY", "PRIMARY KEY");
             isKey = true;
         }
-//        System.out.println(createStatement);
+        // System.out.println(createStatement);
         try {
             CreateTable otherCreateTable = (CreateTable) CCJSqlParserUtil.parse(createStatement);
             for (ColumnDefinition col : otherCreateTable.getColumnDefinitions()) {
@@ -273,8 +275,47 @@ public class TableEntity {
         return false;
     }
 
+    // precision of mysql float type is a big problem
+    // try to use the long type as the hash value to low down the time cost in the selecting statement
+    // MAX VALUE of long is 9223372036854775807 19 digits   64 bits 8 Bytes -> 16 Bytes
+    // MAX VALUE of Integer is 2147483647 10 digits         32 bits 4 Bytes -> 16 Bytes
+    // the memory of the long and integer is the same
+    // use the 18 digits as the hash value in order to avoid overflowing
+    // TODO: memory limit!!! use the long value server as the hash value may lead to OOM!
     public Long getHashValue(String[] data) {
-        long ans = 0l;
-        return ans;
+        int a = Integer.MAX_VALUE;
+        long b = Long.MAX_VALUE;
+        StringBuilder sb = new StringBuilder();
+        if (hasKey) {
+            for (int i : keyIndex) {
+                for (Character ch : data[i].toCharArray()) {
+                    if (ch >= '0' && ch <= '9') {
+                        sb.append(ch);
+                        if (sb.length() == 18)
+                            return Long.valueOf(sb.toString());
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < data.length; i++) {
+                if (i != this.updatedatIndex) {
+                    for(Character ch : data[i].toCharArray()){
+                        if(ch >= '0' && ch <= '9'){
+                            sb.append(ch);
+                            if (sb.length() == 18)
+                                return Long.valueOf(sb.toString());
+                        }
+                    }
+                }
+            }
+        }
+        while (sb.length() < 18)
+            sb.append("0");
+        return Long.valueOf(sb.toString());
+    }
+
+
+    public boolean getHashValueBool(String[] data){
+        return true;
     }
 }

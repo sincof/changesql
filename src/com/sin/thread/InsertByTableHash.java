@@ -13,6 +13,8 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class InsertByTableHash implements Callable<Boolean> {
@@ -38,13 +40,14 @@ public class InsertByTableHash implements Callable<Boolean> {
             connection.setCatalog(dbName);
 
             int MAX_BATCH_SIZE = 50000;
+            // 对所有插入的语句进行一个个计数
+            int updateCnt = 0, insertCnt = 0;
+            PreparedStatement selectStatement = connection.prepareStatement(tableEntity.selectSB.toString());
+            PreparedStatement updateStatement = connection.prepareStatement(tableEntity.updateSB.toString());
+            PreparedStatement insertStatement = connection.prepareStatement(tableEntity.insertSB.toString());
+            Set<Long> set = new HashSet<>();
+            Long hashValue;
             if (tableEntity.hasKey) {
-                PreparedStatement selectStatement = connection.prepareStatement(tableEntity.selectSB.toString());
-                PreparedStatement updateStatement = connection.prepareStatement(tableEntity.updateSB.toString());
-                PreparedStatement insertStatement = connection.prepareStatement(tableEntity.insertSB.toString());
-
-                // 对所有插入的语句进行一个个计数
-                int updateCnt = 0, insertCnt = 0;
                 for (String dataPath : tableEntity.tableDataPath) {
                     BufferedReader br = new BufferedReader(new FileReader(dataPath));
                     String line = br.readLine();
@@ -52,41 +55,45 @@ public class InsertByTableHash implements Callable<Boolean> {
                     while (line != null) {
                         if (line.length() != 0) {
                             data = line.split(",");
-
-                            int updataStatementIndex = 1;
-                            for (int i = 0; i < data.length; i++) {
-                                insertStatement.setString(i + 1, data[i]);
-                                if (!tableEntity.keySet.contains(i))
-                                    updateStatement.setString(updataStatementIndex++, data[i]);
-                            }
-                            // 设置where的主键等于语句
-                            int nowKeyIndex = 1;
-                            for (Integer i : tableEntity.keyIndex) {
-                                updateStatement.setString(updataStatementIndex++, data[i]);
-                                selectStatement.setString(nowKeyIndex, data[i]);
-                                nowKeyIndex++;
-                            }
-                            ResultSet resultSet = selectStatement.executeQuery();
-                            if (resultSet.next()) {
-                                // 结果集中存在数据 更新数据
-                                String updated_at = resultSet.getString(1);
-                                try {
-                                    // < 0 is updated_at is before the data[updatedatIndex]
-                                    // > 0 is updated_at is after the data[updatedatIndex]
-                                    if (compareTime(updated_at, data[tableEntity.updatedatIndex]) < 0) {
-                                        updateStatement.addBatch();
-                                        updateCnt++;
-                                    }
-                                } catch (ParseException pe) {
-                                    System.out.println("updated_at in DB: " + updated_at + ", updated_at in data: " + data[tableEntity.updatedatIndex]);
-                                    pe.printStackTrace();
-                                }
-                            } else {
+                            hashValue = tableEntity.getHashValue(data);
+                            if (!set.contains(hashValue)) {
+                                set.add(hashValue);
+                                for (int i = 0; i < data.length; i++)
+                                    insertStatement.setString(i + 1, data[i]);
                                 // 没有结果 就插入数据
                                 insertStatement.addBatch();
                                 insertCnt++;
+                            } else {
+                                int updataStatementIndex = 1;
+                                for (int i = 0; i < data.length; i++) {
+                                    if (!tableEntity.keySet.contains(i))
+                                        updateStatement.setString(updataStatementIndex++, data[i]);
+                                }
+                                // 设置where的主键等于语句
+                                int nowKeyIndex = 1;
+                                for (Integer i : tableEntity.keyIndex) {
+                                    updateStatement.setString(updataStatementIndex++, data[i]);
+                                    selectStatement.setString(nowKeyIndex, data[i]);
+                                    nowKeyIndex++;
+                                }
+                                ResultSet resultSet = selectStatement.executeQuery();
+                                if (resultSet.next()) {
+                                    // 结果集中存在数据 更新数据
+                                    String updated_at = resultSet.getString(1);
+                                    try {
+                                        // < 0 is updated_at is before the data[updatedatIndex]
+                                        // > 0 is updated_at is after the data[updatedatIndex]
+                                        if (compareTime(updated_at, data[tableEntity.updatedatIndex]) < 0) {
+                                            updateStatement.addBatch();
+                                            updateCnt++;
+                                        }
+                                    } catch (ParseException pe) {
+                                        System.out.println("updated_at in DB: " + updated_at + ", updated_at in data: " + data[tableEntity.updatedatIndex]);
+                                        pe.printStackTrace();
+                                    }
+                                }
+                                resultSet.close();
                             }
-                            resultSet.close();
                         }
                         line = br.readLine();
                         if (updateCnt % MAX_BATCH_SIZE == 0) {
@@ -112,12 +119,6 @@ public class InsertByTableHash implements Callable<Boolean> {
                     e.printStackTrace();
                 }
             } else {
-                PreparedStatement selectStatement = connection.prepareStatement(tableEntity.selectSB.toString());
-                PreparedStatement updateStatement = connection.prepareStatement(tableEntity.updateSB.toString());
-                PreparedStatement insertStatement = connection.prepareStatement(tableEntity.insertSB.toString());
-
-                // 对所有插入的语句进行一个个计数
-                int updateCnt = 0, insertCnt = 0;
                 for (String dataPath : tableEntity.tableDataPath) {
                     BufferedReader br = new BufferedReader(new FileReader(dataPath));
                     String line = br.readLine();
@@ -125,36 +126,41 @@ public class InsertByTableHash implements Callable<Boolean> {
                     while (line != null) {
                         if (line.length() != 0) {
                             data = line.split(",");
-                            for (int i = 0; i < data.length; i++) {
-                                insertStatement.setString(i + 1, data[i]);
-                                if (i < tableEntity.updatedatIndex) {
-                                    selectStatement.setString(i + 1, data[i]);
-                                    updateStatement.setString(i + 2, data[i]);
-                                } else if (i == tableEntity.updatedatIndex)
-                                    updateStatement.setString(1, data[i]);
-                                else {
-                                    selectStatement.setString(i, data[i]);
-                                    updateStatement.setString(i + 2, data[i]);
-                                }
-                            }
-                            ResultSet resultSet = selectStatement.executeQuery();
-                            if (resultSet.next()) {
-                                String updated_at = resultSet.getString(1);
-                                try {
-                                    // < 0 is updated_at is before the data[updatedatIndex]
-                                    // > 0 is updated_at is after the data[updatedatIndex]
-                                    if (compareTime(updated_at, data[tableEntity.updatedatIndex]) < 0) {
-                                        updateStatement.addBatch();
-                                        updateCnt++;
-                                    }
-                                } catch (ParseException pe) {
-                                    System.out.println("updated_at in DB: " + updated_at + ", updated_at in data: " + data[tableEntity.updatedatIndex]);
-                                    pe.printStackTrace();
-                                }
-                            } else {
+                            hashValue = tableEntity.getHashValue(data);
+                            if (!set.contains(hashValue)) {
+                                set.add(hashValue);
+                                for (int i = 0; i < data.length; i++)
+                                    insertStatement.setString(i + 1, data[i]);
+                                // 没有结果 就插入数据
                                 insertStatement.addBatch();
                                 insertCnt++;
-                                //insertStatement.execute();
+                            } else {
+                                for (int i = 0; i < data.length; i++) {
+                                    if (i < tableEntity.updatedatIndex) {
+                                        selectStatement.setString(i + 1, data[i]);
+                                        updateStatement.setString(i + 2, data[i]);
+                                    } else if (i == tableEntity.updatedatIndex)
+                                        updateStatement.setString(1, data[i]);
+                                    else {
+                                        selectStatement.setString(i, data[i]);
+                                        updateStatement.setString(i + 2, data[i]);
+                                    }
+                                }
+                                ResultSet resultSet = selectStatement.executeQuery();
+                                if (resultSet.next()) {
+                                    String updated_at = resultSet.getString(1);
+                                    try {
+                                        // < 0 is updated_at is before the data[updatedatIndex]
+                                        // > 0 is updated_at is after the data[updatedatIndex]
+                                        if (compareTime(updated_at, data[tableEntity.updatedatIndex]) < 0) {
+                                            updateStatement.addBatch();
+                                            updateCnt++;
+                                        }
+                                    } catch (ParseException pe) {
+                                        System.out.println("updated_at in DB: " + updated_at + ", updated_at in data: " + data[tableEntity.updatedatIndex]);
+                                        pe.printStackTrace();
+                                    }
+                                }
                             }
                         }
                         line = br.readLine();

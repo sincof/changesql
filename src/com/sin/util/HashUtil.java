@@ -13,6 +13,9 @@ public class HashUtil {
         return Long.MAX_VALUE;
     }
 
+
+    public static long MAX_VALUE = Long.MAX_VALUE;
+
     public static boolean isInteger(String col){
         if(col == null || col.length() == 0)
             return false;
