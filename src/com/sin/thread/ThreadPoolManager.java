@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ThreadPoolManager {
     // 线程池的参数
-    private static final int CORE_POOL_SIZE = 8;
+    private static final int CORE_POOL_SIZE = 16;
     private static final int MAX_POOL_SIZE = 8192;
     private static final int QUEUE_CAPACITY = 8192;
     private static final long KEEP_ALIVE_TIME = 100 * 60;
