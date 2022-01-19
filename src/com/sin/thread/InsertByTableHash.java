@@ -39,7 +39,7 @@ public class InsertByTableHash implements Callable<Boolean> {
         try (Connection connection = dbConnection.connectDB()) {
             connection.setCatalog(dbName);
 
-            int MAX_BATCH_SIZE = 50000;
+            int MAX_BATCH_SIZE = 10000;
             // 对所有插入的语句进行一个个计数
             int updateCnt = 0, insertCnt = 0;
             PreparedStatement selectStatement = connection.prepareStatement(tableEntity.selectSB.toString());

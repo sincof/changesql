@@ -15,7 +15,7 @@ public class DBConnection {
     static {
         try{
             config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "1000");
+            config.addDataSourceProperty("prepStmtCacheSize", "10000");
             config.addDataSourceProperty("prepStmtCacheSqlLimit","1024");
             config.addDataSourceProperty("useServerPrepStmts", "true");
             config.addDataSourceProperty("useLocalSessionState", "true");
