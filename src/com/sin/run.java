@@ -50,14 +50,14 @@ public class run {
         int status = ProgramStatus.getProgramStatus();
         switch (status) {
             case -1:
-                System.out.println("LOG: First run! (null -> 1)");
+                System.out.println("LOG: First run! (-1 -> 1)");
                 try (Connection conn = dbconn.connectDB()) {
                     dbManager.createDB(conn); // 创建数据表和数据库
                 } catch (SQLException sqle) {
                     sqle.printStackTrace();
                 }
                 ProgramStatus.finishWR();
-                System.out.println("LOG: Finish creating table (null -> 1 -> 2)");
+                System.out.println("LOG: Finish creating table (-1 -> 1 -> 2)");
                 break;
             case 1:
                 System.out.println("LOG: Second run! (1 -> 3)");

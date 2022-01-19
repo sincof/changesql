@@ -349,6 +349,7 @@ WHERE column_name operator value;
 
 4. [MySQL中float、double、decimal三个浮点类型的区别与总结](https://bbs.huaweicloud.com/forum/thread-90199-1-1.html)
 
+5. 初步构想，为了完全利用服务器资源： 当一个线程中的update cnt 第一次达到10000的时候，使用信号量，让主线程再启动一个插入子线程
    
 
 
@@ -361,6 +362,7 @@ WHERE column_name operator value;
 
    ![image-20220113201745477](解析SQL语句和插入数据.assets/image-20220113201745477.png)
 
+2. 
    
 
 1. 还有一个问题，就是连接直接失效，无法连接上数据库，不知道为什么。
