@@ -45,6 +45,9 @@ public class InsertByTableHash implements Callable<Boolean> {
             PreparedStatement insertStatement = connection.prepareStatement(tableEntity.insertSB.toString());
             Set<Long> set = new HashSet<>();
             Long hashValue;
+            long s;
+            int timeCnt = 0;
+            long[] cost = new long[10];
             if (tableEntity.hasKey) {
                 for (String dataPath : tableEntity.tableDataPath) {
                     BufferedReader br = new BufferedReader(new FileReader(dataPath));
@@ -52,8 +55,15 @@ public class InsertByTableHash implements Callable<Boolean> {
                     String[] data;
                     while (line != null) {
                         if (line.length() != 0) {
+                            s = System.currentTimeMillis();
                             data = line.split(",");
+                            cost[0] += (System.currentTimeMillis() - s);
+
+                            s = System.currentTimeMillis();
                             hashValue = tableEntity.getHashValue(data);
+                            cost[1] += (System.currentTimeMillis() - s);
+
+                            s = System.currentTimeMillis();
                             // 目的是将float类型的数据压缩成8位，保留精度
                             for (int i = 0; i < data.length; i++) {
                                 if (tableEntity.colIsFloat[i]) {
@@ -75,14 +85,19 @@ public class InsertByTableHash implements Callable<Boolean> {
 //                                    }
                                 }
                             }
+                            cost[2] += (System.currentTimeMillis() - s);
+
                             if (!set.contains(hashValue)) {
+                                s = System.currentTimeMillis();
                                 set.add(hashValue);
                                 for (int i = 0; i < data.length; i++)
                                     insertStatement.setString(i + 1, data[i]);
                                 // 没有结果 就插入数据
                                 insertStatement.addBatch();
                                 insertCnt++;
+                                cost[3] += (System.currentTimeMillis() - s);
                             } else {
+                                s = System.currentTimeMillis();
                                 int updataStatementIndex = 1;
                                 for (int i = 0; i < data.length; i++) {
                                     if (!tableEntity.keySet.contains(i))
@@ -95,16 +110,29 @@ public class InsertByTableHash implements Callable<Boolean> {
                                     selectStatement.setString(nowKeyIndex, data[i]);
                                     nowKeyIndex++;
                                 }
+                                cost[4] += (System.currentTimeMillis() - s);
+
+                                s = System.currentTimeMillis();
                                 ResultSet resultSet = selectStatement.executeQuery();
+                                cost[5] += (System.currentTimeMillis() - s);
+
                                 if (resultSet.next()) {
                                     // 结果集中存在数据 更新数据
+                                    // 这段判断耗时最长
+                                    s = System.currentTimeMillis();
                                     String updated_at = resultSet.getString(1);
+                                    cost[6] += (System.currentTimeMillis() - s);
+
                                     try {
                                         // < 0 is updated_at is before the data[updatedatIndex]
                                         // > 0 is updated_at is after the data[updatedatIndex]
+                                        s = System.currentTimeMillis();
                                         if (compareTime(updated_at, data[tableEntity.updatedatIndex]) < 0) {
+                                            cost[7] += (System.currentTimeMillis() - s);
+                                            s = System.currentTimeMillis();
                                             updateStatement.addBatch();
                                             updateCnt++;
+                                            cost[8] += (System.currentTimeMillis() - s);
                                         }
                                     } catch (ParseException pe) {
                                         System.out.println("updated_at in DB: " + updated_at + ", updated_at in data: " + data[tableEntity.updatedatIndex]);
@@ -122,6 +150,10 @@ public class InsertByTableHash implements Callable<Boolean> {
                         if (insertCnt % MAX_BATCH_SIZE == 0) {
                             insertStatement.executeBatch();
                             insertCnt = 1;
+                        }
+                        timeCnt++;
+                        if(timeCnt == 1000){
+                            System.out.println(cost);
                         }
                     }
                     br.close();
