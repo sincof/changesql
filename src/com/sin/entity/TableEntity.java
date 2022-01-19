@@ -24,9 +24,9 @@ public class TableEntity {
     // have Key? if we have key we should use the key to find the data
     public boolean hasKey = false;
     // have column in the key which the type is float
-    // public int[] floatValueIndex;
+     public int[] floatValueIndex;
     // public int[] floatKeyName;
-    private boolean[] colIsFloat;
+    public boolean[] colIsFloat;
 
     // may be key / primary key index
     // which columns in the data is the key
@@ -41,11 +41,11 @@ public class TableEntity {
 
     public TableEntity(String createTableStatement) {
         this.tableDataPath = new LinkedList<>();
-        this.columns = new LinkedList<String>();
-        this.columnDefinitionMap = new HashMap<String, ColumnDefinition>();
+        this.columns = new LinkedList<>();
+        this.columnDefinitionMap = new HashMap<>();
         keySet = new HashSet<>();
         // floatIndexSet = new HashSet<>();
-        colIsFloat = new boolean[20];
+        colIsFloat = new boolean[5];
         createTBDefine(createTableStatement);
     }
 
@@ -107,7 +107,7 @@ public class TableEntity {
                 insertSB = new StringBuilder("insert into " + name + " values (");
                 selectSB = new StringBuilder("select updated_at from " + name + " where ");
                 columnCnt = 0;
-                boolean flag = true;
+                boolean flag;
                 for (String col : columns) {
                     flag = true;
                     for (String s : keyNameList)

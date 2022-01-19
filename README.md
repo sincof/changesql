@@ -134,6 +134,9 @@ Service:
    
 2. Create statement 的最后一个变量声明的末尾不应该包含逗号。。
 
+## 可能可以优化的点
+1. float实际精度只有6位
+
 ## 项目中使用到的一些JAVA开源 / 非开源库 （感谢这些开源库 / 非开源库）
 
 [mysql connector](https://dev.mysql.com/downloads/connector/j/) ：用来完成对数据库的连接（**非开源库**， 这个应该是没有开源的）

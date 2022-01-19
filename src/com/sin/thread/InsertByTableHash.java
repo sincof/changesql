@@ -29,10 +29,8 @@ public class InsertByTableHash implements Callable<Boolean> {
         assert this.dbConnection != null;
     }
 
-    // 1.   读取文件中的数据，当行数达到1000行的时候
-    //      直接发送1000次查询给数据库
-    //      硬等数据库放回1000次查询结果
-    //      根据放回的结果发送更新以及插入块
+    // TODO：2. 需要将hashset替换成bloom filter！
+    // TODO：1.如果当前表存在float类型的键的话，需要将data下标位float的那个的有效值降低到6位
     @Override
     public Boolean call() {
         System.out.println("INSERT TABLE " + tableEntity.name);
@@ -41,7 +39,7 @@ public class InsertByTableHash implements Callable<Boolean> {
 
             int MAX_BATCH_SIZE = 10000;
             // 对所有插入的语句进行一个个计数
-            int updateCnt = 0, insertCnt = 0;
+            int updateCnt = 1, insertCnt = 1;
             PreparedStatement selectStatement = connection.prepareStatement(tableEntity.selectSB.toString());
             PreparedStatement updateStatement = connection.prepareStatement(tableEntity.updateSB.toString());
             PreparedStatement insertStatement = connection.prepareStatement(tableEntity.insertSB.toString());
@@ -56,6 +54,27 @@ public class InsertByTableHash implements Callable<Boolean> {
                         if (line.length() != 0) {
                             data = line.split(",");
                             hashValue = tableEntity.getHashValue(data);
+                            // 目的是将float类型的数据压缩成8位，保留精度
+                            for (int i = 0; i < data.length; i++) {
+                                if (tableEntity.colIsFloat[i]) {
+                                    data[i] = compressionFloat(data[i]);
+//                                    String[] strs = data[i].split("\\.");
+//                                    // 数据是整数类型，无法压缩字符长度，让数据库处理吧
+//                                    // 数据是浮点类型，可能可以压缩字符长度
+//                                    if (strs[0].length() < 8 && strs.length == 2) {
+//                                        StringBuilder sb = new StringBuilder(strs[0]);
+//                                        sb.append(".");
+//                                        int left = 8 - strs[0].length();
+//                                        if(left > 0){
+//                                            if(strs[1].length() < left)
+//                                                sb.append(strs[1]);
+//                                            else
+//                                                sb.append(strs[1].substring(0, left));
+//                                        }
+//                                        data[i] = sb.toString();
+//                                    }
+                                }
+                            }
                             if (!set.contains(hashValue)) {
                                 set.add(hashValue);
                                 for (int i = 0; i < data.length; i++)
@@ -98,17 +117,19 @@ public class InsertByTableHash implements Callable<Boolean> {
                         line = br.readLine();
                         if (updateCnt % MAX_BATCH_SIZE == 0) {
                             updateStatement.executeBatch();
+                            updateCnt = 1;
                         }
                         if (insertCnt % MAX_BATCH_SIZE == 0) {
                             insertStatement.executeBatch();
+                            insertCnt = 1;
                         }
                     }
                     br.close();
                 }
-                if (updateCnt != 0) {
+                if (updateCnt != 1) {
                     updateStatement.executeBatch();
                 }
-                if (insertCnt != 0) {
+                if (insertCnt != 1) {
                     insertStatement.executeBatch();
                 }
                 try {
@@ -127,6 +148,27 @@ public class InsertByTableHash implements Callable<Boolean> {
                         if (line.length() != 0) {
                             data = line.split(",");
                             hashValue = tableEntity.getHashValue(data);
+                            // 目的是将float类型的数据压缩成8位，保留精度
+                            for (int i = 0; i < data.length; i++) {
+                                if (tableEntity.colIsFloat[i]) {
+                                    data[i] = compressionFloat(data[i]);
+//                                    String[] strs = data[i].split("\\.");
+//                                    // 数据是整数类型，无法压缩字符长度，让数据库处理吧
+//                                    // 数据是浮点类型，可能可以压缩字符长度
+//                                    if (strs[0].length() < 8 && strs.length == 2) {
+//                                        StringBuilder sb = new StringBuilder(strs[0]);
+//                                        sb.append(".");
+//                                        int left = 8 - strs[0].length();
+//                                        if(left > 0){
+//                                            if(strs[1].length() < left)
+//                                                sb.append(strs[1]);
+//                                            else
+//                                                sb.append(strs[1].substring(0, left));
+//                                        }
+//                                        data[i] = sb.toString();
+//                                    }
+                                }
+                            }
                             if (!set.contains(hashValue)) {
                                 set.add(hashValue);
                                 for (int i = 0; i < data.length; i++)
@@ -166,15 +208,17 @@ public class InsertByTableHash implements Callable<Boolean> {
                         line = br.readLine();
                         if (updateCnt % MAX_BATCH_SIZE == 0) {
                             updateStatement.executeBatch();
+                            updateCnt = 1;
                         }
                         if (insertCnt % MAX_BATCH_SIZE == 0) {
                             insertStatement.executeBatch();
+                            insertCnt = 1;
                         }
                     }
-                    if (updateCnt != 0) {
+                    if (updateCnt != 1) {
                         updateStatement.executeBatch();
                     }
-                    if (insertCnt != 0) {
+                    if (insertCnt != 1) {
                         insertStatement.executeBatch();
                     }
                     br.close();
@@ -202,5 +246,25 @@ public class InsertByTableHash implements Callable<Boolean> {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm");
         Date oriD = df.parse(oriS), newD = df.parse(newS);
         return oriD.compareTo(newD);
+    }
+
+    public String compressionFloat(String data){
+        String[] strs = data.split("\\.");
+        // 数据是整数类型，无法压缩字符长度，让数据库处理吧
+        // 数据是浮点类型，可能可以压缩字符长度
+        if (strs[0].length() < 8 && strs.length == 2) {
+            StringBuilder sb = new StringBuilder(strs[0]);
+            sb.append(".");
+            int left = 8 - strs[0].length();
+            if(left > 0){
+                if(strs[1].length() < left)
+                    sb.append(strs[1]);
+                else
+                    sb.append(strs[1].substring(0, left));
+            }
+            return sb.toString();
+        }else if(strs[0].length() >= 8)
+            return strs[0];
+        return data;
     }
 }

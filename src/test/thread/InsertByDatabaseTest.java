@@ -27,6 +27,40 @@ import java.util.Locale;
 
 public class InsertByDatabaseTest {
 
+    public String compressionFloat(String data){
+        String[] strs = data.split("\\.");
+        // 数据是整数类型，无法压缩字符长度，让数据库处理吧
+        // 数据是浮点类型，可能可以压缩字符长度
+        if (strs[0].length() < 8 && strs.length == 2) {
+            StringBuilder sb = new StringBuilder(strs[0]);
+            sb.append(".");
+            int left = 8 - strs[0].length();
+            if(left > 0){
+                if(strs[1].length() < left)
+                    sb.append(strs[1]);
+                else
+                    sb.append(strs[1].substring(0, left));
+            }
+            return sb.toString();
+        }else if(strs[0].length() >= 8)
+            return strs[0];
+        return data;
+    }
+
+    @Test
+    public void compressionTest() {
+        String str = "123456789123456789";
+        for(int i = str.length(); i> 0; i--){
+            StringBuilder sb = new StringBuilder(str.substring(0, i));
+            sb.append(".");
+            if(i < str.length())
+                sb.append(str.substring(i, str.length()));
+            Assertions.assertEquals(sb.substring(0, 8), compressionFloat(sb.toString()).substring(0, 8));
+            System.out.println(sb.toString());
+            System.out.println(compressionFloat(sb.toString()));
+        }
+    }
+
     //    String DstIP = "tdsqlshard-gzh17qjo.sql.tencentcdb.com";
 //    String DstPort = "135";
 //    String DstUser = "admin";
@@ -40,9 +74,9 @@ public class InsertByDatabaseTest {
 
     @Test
     public void timeTest() throws ParseException {
-        String[] sqltime = new String[]{"2021-03-30 04:30:27","2021-07-18 22:43:04",
-                "2021-08-29 18:57:43","2021-09-03 16:57:37","2021-10-18 13:02:10",  "2021-12-11 10:02:42"};
-        for(int i = 0; i < sqltime.length - 1; i++){
+        String[] sqltime = new String[]{"2021-03-30 04:30:27", "2021-07-18 22:43:04",
+                "2021-08-29 18:57:43", "2021-09-03 16:57:37", "2021-10-18 13:02:10", "2021-12-11 10:02:42"};
+        for (int i = 0; i < sqltime.length - 1; i++) {
             Assertions.assertTrue(compareTime(sqltime[i], sqltime[i + 1]) < 0);
         }
     }
