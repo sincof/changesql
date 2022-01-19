@@ -42,17 +42,17 @@ public class ProgramStatus {
                         fileWriter.flush();
                         System.out.println("3 status");
                         break;
-                    case 3:
-                        fileWriter.write('3');
-                        status = 3;
-                        fileWriter.flush();
-                        System.out.println("3 status");
-                        break;
                     case 2:
                         fileWriter.write('4');
                         status = 2;
                         fileWriter.flush();
                         System.out.println("4 status");
+                        break;
+                    case 3:
+                        fileWriter.write('3');
+                        status = 3;
+                        fileWriter.flush();
+                        System.out.println("3 status");
                         break;
                     case 4:
                         fileWriter.write('4');
@@ -81,7 +81,10 @@ public class ProgramStatus {
                     fileWriter.flush();
                     System.out.println("2 status");
                     break;
-                case 1, 2, 3, 4:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
                     fileWriter.write('4');
                     status = 4;
                     fileWriter.flush();
