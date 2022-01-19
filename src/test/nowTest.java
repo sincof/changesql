@@ -2,28 +2,19 @@ package test;
 
 
 import com.sin.entity.SQLNumberType;
-import com.sin.entity.TableEntity;
 import com.sin.service.DBConnection;
 import com.sin.service.DBManager;
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import sun.misc.Signal;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import com.sin.entity.SQLNumberType;
 
 public class nowTest {
 //    --data_path /tmp/data --dst_ip 121.41.55.205 --dst_port 3306 --dst_user root --dst_password changesql
@@ -38,6 +29,10 @@ public class nowTest {
 
     public nowTest() throws IOException, SQLException {
 //        dbManager.createDB(conn);
+    }
+
+    @Test
+    public void ShutdownTest(){
     }
 
     @Test

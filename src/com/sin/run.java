@@ -58,7 +58,8 @@ public class run {
                 }
                 ProgramStatus.finishWR();
                 System.out.println("LOG: Finish creating table (-1 -> 1 -> 2)");
-                break;
+                while (true){}
+                // break;
             case 1:
                 System.out.println("LOG: Second run! (1 -> 3)");
                 try (Connection conn = dbconn.connectDB()) {
@@ -68,12 +69,14 @@ public class run {
                 }
                 ProgramStatus.finishWR();
                 System.out.println("LOG: Finish creating table (1 -> 3 -> 4)");
-                break;
+                while (true){}
+                // break;
             case 2:
                 System.out.println("LOG: Second run! (2 -> 4)");
                 ProgramStatus.finishWR();
                 System.out.println("LOG: I am status 2 with database & table (2 -> 4)");
-                break;
+                while(true){}
+                // break;
             case 3:
                 System.out.println("LOG: Third run!");
                 try (Connection conn = dbconn.connectDB()) {
