@@ -75,26 +75,20 @@ public class ProgramStatus {
     public static int finishWR() {
         try (FileWriter fileWriter = new FileWriter(file)) {
             switch (status) {
-                case -1 ->{
+                case -1:
                     fileWriter.write('2');
                     status = 2;
                     fileWriter.flush();
                     System.out.println("2 status");
-                }
-                case 1 -> {
+                    break;
+                case 1, 2, 3, 4:
                     fileWriter.write('4');
                     status = 4;
                     fileWriter.flush();
                     System.out.println("4 status");
-                }
-                case 2, 3, 4 -> {
-                    fileWriter.write('4');
-                    status = 4;
-                    fileWriter.flush();
-                    System.out.println("4 status");
-                }
-                default -> {
-                }
+                    break;
+                default:
+                    break;
             }
         } catch (IOException e) {
             e.printStackTrace();

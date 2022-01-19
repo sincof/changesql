@@ -49,7 +49,7 @@ public class run {
 
         int status = ProgramStatus.getProgramStatus();
         switch (status) {
-            case (-1) -> {
+            case -1:
                 System.out.println("LOG: First run! (null -> 1)");
                 try (Connection conn = dbconn.connectDB()) {
                     dbManager.createDB(conn); // 创建数据表和数据库
@@ -58,8 +58,8 @@ public class run {
                 }
                 ProgramStatus.finishWR();
                 System.out.println("LOG: Finish creating table (null -> 1 -> 2)");
-            }
-            case (1) -> {
+                break;
+            case 1:
                 System.out.println("LOG: Second run! (1 -> 3)");
                 try (Connection conn = dbconn.connectDB()) {
                     dbManager.createDB(conn); // 创建数据表和数据库
@@ -68,29 +68,25 @@ public class run {
                 }
                 ProgramStatus.finishWR();
                 System.out.println("LOG: Finish creating table (1 -> 3 -> 4)");
-            }
-            case (2) -> {
+                break;
+            case 2:
                 System.out.println("LOG: Second run! (2 -> 4)");
                 ProgramStatus.finishWR();
                 System.out.println("LOG: I am status 2 with database & table (2 -> 4)");
-            }
-            case (3) -> {
-                // second run without creating the database & table
+                break;
+            case 3:
                 System.out.println("LOG: Third run!");
                 try (Connection conn = dbconn.connectDB()) {
                     dbManager.createDB(conn); // 创建数据表和数据库
                 } catch (SQLException sqle) {
                     sqle.printStackTrace();
                 }
+            case 4:
                 // insert
+                System.out.println("LOG: Start insert data into database");
                 ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
                 threadPoolManager.runInsertTaskByTableHash();
-            }
-            case (4) -> {
-                // insert
-                ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
-                threadPoolManager.runInsertTaskByTableHash();
-            }
+                break;
         }
     }
     // tdsqlshard-gzh17qjo.sql.tencentcdb.com:135 实例地址
