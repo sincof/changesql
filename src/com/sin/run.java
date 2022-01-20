@@ -5,9 +5,9 @@ import com.beust.jcommander.Parameter;
 import com.sin.service.DBConnection;
 import com.sin.service.DBManager;
 import com.sin.service.ProgramStatus;
-import com.sin.thread.ThreadPoolManager;
+import com.sin.service.TransformService;
+import com.sin.thread.BySelectStatement.ThreadPoolManager;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -87,6 +87,7 @@ public class run {
             case 4:
                 // insert
                 System.out.println("LOG: Start insert data into database");
+                TransformService.transformCSV2SQL(dbManager);
                 ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
                 threadPoolManager.runInsertTaskByTableHash();
                 break;

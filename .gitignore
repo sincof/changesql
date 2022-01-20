@@ -20,6 +20,7 @@
 /out.
 #
 *.xml
+**/*.xml
 
 /target
 *.zip

@@ -1,4 +1,4 @@
-package com.sin.thread;
+package com.sin.thread.BySelectStatement;
 
 import com.sin.entity.DatabaseEntity;
 import com.sin.entity.TableEntity;
@@ -43,7 +43,7 @@ public class ThreadPoolManager {
         TableEntity[] tableEntities = new TableEntity[CORE_POOL_SIZE];
         Future<Boolean>[] result = new Future[CORE_POOL_SIZE];
         for (DatabaseEntity databaseEntity : dbManager.dbList) {
-            for(TableEntity tableEntity : databaseEntity.tableEntityMap.values()){
+            for (TableEntity tableEntity : databaseEntity.tableEntityMap.values()) {
                 if (runTasks < CORE_POOL_SIZE) {
                     tableEntities[runTasks] = tableEntity;
                     result[runTasks++] = poolExecutor.submit(new InsertByTableHash(tableEntity, databaseEntity.name, dbconn));
@@ -63,7 +63,7 @@ public class ThreadPoolManager {
                         Thread.sleep(1000);
                     }
                     tableEntities[finishPos] = tableEntity;
-                    result[finishPos] = poolExecutor.submit(new InsertByTableHash(tableEntity, databaseEntity.name,dbconn));
+                    result[finishPos] = poolExecutor.submit(new InsertByTableHash(tableEntity, databaseEntity.name, dbconn));
                 }
             }
         }
@@ -88,7 +88,7 @@ public class ThreadPoolManager {
         TableEntity[] tableEntities = new TableEntity[CORE_POOL_SIZE];
         Future<Boolean>[] result = new Future[CORE_POOL_SIZE];
         for (DatabaseEntity databaseEntity : dbManager.dbList) {
-            for(TableEntity tableEntity : databaseEntity.tableEntityMap.values()){
+            for (TableEntity tableEntity : databaseEntity.tableEntityMap.values()) {
                 if (runTasks < CORE_POOL_SIZE) {
                     tableEntities[runTasks] = tableEntity;
                     result[runTasks++] = poolExecutor.submit(new InsertByTable(tableEntity, databaseEntity.name, dbconn));
@@ -108,7 +108,7 @@ public class ThreadPoolManager {
                         Thread.sleep(1000);
                     }
                     tableEntities[finishPos] = tableEntity;
-                    result[finishPos] = poolExecutor.submit(new InsertByTable(tableEntity, databaseEntity.name,dbconn));
+                    result[finishPos] = poolExecutor.submit(new InsertByTable(tableEntity, databaseEntity.name, dbconn));
                 }
             }
         }

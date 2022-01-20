@@ -1,8 +1,7 @@
-package com.sin.thread;
+package com.sin.thread.BySelectStatement;
 
 import com.sin.entity.TableEntity;
 import com.sin.service.DBConnection;
-import net.sf.jsqlparser.statement.create.table.Index;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
