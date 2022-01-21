@@ -47,15 +47,15 @@ public class TransformService {
                         String hash = table.columnToHash(data);
                         if (rowMap.containsKey(hash)) {
                             String[] tmpStrs = rowMap.get(hash).data.split(",");
-                            if(tmpStrs.length >table.updatedatIndex){
+                            if (tmpStrs.length > table.updatedatIndex) {
                                 String time = tmpStrs[table.updatedatIndex];
-                                if(compareTime(time, data[table.updatedatIndex]) < 0){
+                                if (compareTime(time, data[table.updatedatIndex]) < 0) {
                                     RowEntity row = rowMap.get(hash);
                                     if (!row.flag) {
                                         duplicateRow.add(row.index);
                                         row.flag = true;
                                     }
-                                    row.data = line ;
+                                    row.data = line;
                                 }
                             }
                         } else {
@@ -74,16 +74,16 @@ public class TransformService {
                         line = br.readLine();
                     }
                     br.close();
-                     dataFile.delete();
+                    dataFile.delete();
                 }
                 writer.close();
 
                 File updateFile = new File(database.name + table.name + String.valueOf(2));
-                if(updateFile.exists()){
+                if (updateFile.exists()) {
                     System.out.println("Who create the fucking file!" + database.name + table.name + String.valueOf(2));
                     return;
                 }
-                if(!updateFile.createNewFile()){
+                if (!updateFile.createNewFile()) {
                     System.out.println("Who create the fucking file!" + database.name + table.name + String.valueOf(2));
                     return;
                 }
@@ -91,12 +91,12 @@ public class TransformService {
                 BufferedReader br = new BufferedReader(new FileReader(tableFile));
                 writer = new OutputStreamWriter(new FileOutputStream(updateFile));
                 String line = br.readLine();
-                while(line != null){
-                    if(!duplicateRow.isEmpty() && readCnt == duplicateRow.peek()){
+                while (line != null) {
+                    if (!duplicateRow.isEmpty() && readCnt == duplicateRow.peek()) {
                         duplicateRow.poll();
                         String hash = table.columnToHash(line.split(","));
                         writer.write(rowMap.get(hash).data + "\n");
-                    }else
+                    } else
                         writer.write(line + "\n");
                     readCnt++;
                     line = br.readLine();
@@ -212,7 +212,7 @@ public class TransformService {
                         break;
                     }
                 }
-                if (flag){
+                if (flag) {
                     ch = new char[len0 - 6];
                     return "1000000" + String.valueOf(ch).replace('\0', '0');
                 }

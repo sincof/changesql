@@ -17,7 +17,7 @@ public class TableEntity {
     public String name;
     public int columnLen;
     public List<String> columns;
-//    public Map<String, ColumnDefinition> columnDefinitionMap;
+    //    public Map<String, ColumnDefinition> columnDefinitionMap;
     public CreateTable createTable;
     // public Set<Integer> keySet;
     // public Set<Integer> floatIndexSet;
@@ -40,7 +40,9 @@ public class TableEntity {
     public int updatedatIndex = 3;
 
     // PreparedStatement build string
-    public StringBuilder updateSB, insertSB, selectSB;
+    // public StringBuilder updateSB, insertSB, selectSB;
+    public StringBuilder insertSB;
+    private boolean doubleOutKey = false;
 
     public TableEntity(String createTableStatement) {
         this.tableDataPath = new LinkedList<>();
@@ -68,11 +70,6 @@ public class TableEntity {
         }
 
         // to lower case
-//        statement = statement.toLowerCase(Locale.ROOT);
-        if(statement.contains("float")){
-             statement = statement.replaceFirst("float", "double");
-        }
-
         try {
             this.createTable = (CreateTable) CCJSqlParserUtil.parse(statement);
             this.name = createTable.getTable().getName();
@@ -193,6 +190,9 @@ public class TableEntity {
             System.out.println(statement);
             e.printStackTrace();
         }
+
+        if(hasKey && statement.contains("double"))
+            doubleOutKey = true;
     }
 
     public void addTBDefine(String createStatement) {
@@ -328,17 +328,17 @@ public class TableEntity {
 //    }
 
     // 默认认为第四列是updated_at
-    public String columnToHash(String[] data){
+    public String columnToHash(String[] data) {
         StringBuilder sb = new StringBuilder();
-        if(hasKey){
-            for(int i = 0; i < data.length; i++){
-                if(i == updatedatIndex || !columnIsKey[i])
+        if (hasKey && !doubleOutKey) {
+            for (int i = 0; i < data.length; i++) {
+                if (i == updatedatIndex || !columnIsKey[i])
                     continue;
                 sb.append(data[i]);
             }
-        }else{
-            for(int i = 0; i < data.length; i++){
-                if(i == updatedatIndex)
+        } else {
+            for (int i = 0; i < data.length; i++) {
+                if (i == updatedatIndex)
                     continue;
                 sb.append(data[i]);
             }

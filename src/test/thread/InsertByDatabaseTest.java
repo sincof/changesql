@@ -27,6 +27,25 @@ import java.util.Locale;
 
 public class InsertByDatabaseTest {
 
+    @Test
+    public void tst() throws IOException, SQLException {
+        // precision test
+        // --data_path /tmp/data --dst_ip 121.41.55.205 --dst_port 3306 --dst_user root --dst_password changesql
+        DBConnection dbConnection = new DBConnection("121.41.55.205", "3306", "root", "changesql");
+        Connection conn = dbConnection.connectDB();
+        conn.setCatalog("a");
+        Statement statement = conn.createStatement();
+//        ResultSet resultSet = statement.executeQuery("SELECT a FROM `2`;");
+//        statement.execute("DROP table `2`;");
+//        statement.execute(
+//                ""
+//        );
+//        int len = resultSet1.getMetaData().getColumnCount();
+//        while(resultSet1.next()){
+//            System.out.println(resultSet1.getString(1));
+//        }
+    }
+
     public String compressionFloat(String data){
         String[] strs = data.split("\\.");
         // 数据是整数类型，无法压缩字符长度，让数据库处理吧
