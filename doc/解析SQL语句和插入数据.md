@@ -374,3 +374,21 @@ WHERE column_name operator value;
    https://stackoverflow.com/questions/24171653/mysql-select-performance-issue-with-jdbc
    https://stackoverflow.com/questions/2993251/jdbc-batch-insert-performance
    https://stackoverflow.com/questions/23120584/why-does-mysql-round-floats-way-more-than-expected
+
+3. 
+```mysql
+CREATE TABLE `2` (
+  `id` bigint unsigned NOT NULL,
+  `a` float NOT NULL DEFAULT '0',
+  `b` char(32) NOT NULL DEFAULT '',
+  `updated_at` datetime NOT NULL DEFAULT '2021-12-12 00:00:00',
+  PRIMARY KEY (`id`,`a`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3
+
+INSERT into `2` values(7, 7777777777, "123", "2021-12-12 00:00:00");
+INSERT into `2` values(7, 7777779999, "123", "2021-12-12 00:00:00");
+
+there is the data in the table fuck float!!!!
+7	7777780224	123	2021-12-12 00:00:00
+7	7777780224	123	2021-12-12 00:00:00
+```

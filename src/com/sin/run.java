@@ -6,11 +6,12 @@ import com.sin.service.DBConnection;
 import com.sin.service.DBManager;
 import com.sin.service.ProgramStatus;
 import com.sin.service.TransformService;
-import com.sin.thread.BySelectStatement.ThreadPoolManager;
+import com.sin.thread.ThreadPoolManager;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.ParseException;
 
 public class run {
     @Parameter(names = {"--data_path"}, description = "dir path of source data")
@@ -36,7 +37,7 @@ public class run {
 //    private static final long KEEP_ALIVE_TIME = 100 * 60;
 
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, ParseException {
 
         run run = new run();
         //parse cmd
@@ -89,7 +90,7 @@ public class run {
                 System.out.println("LOG: Start insert data into database");
                 TransformService.transformCSV2SQL(dbManager);
                 ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
-                threadPoolManager.runInsertTaskByTableHash();
+                threadPoolManager.runInsertTask();
                 break;
         }
     }
