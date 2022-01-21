@@ -6,7 +6,9 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 
 public class TableEntity {
     public List<String> tableDataPath;
@@ -64,6 +66,13 @@ public class TableEntity {
             statement = statement.replaceFirst("KEY", "PRIMARY KEY");
             isKey = true;
         }
+
+        // to lower case
+//        statement = statement.toLowerCase(Locale.ROOT);
+        if(statement.contains("float")){
+             statement = statement.replaceFirst("float", "double");
+        }
+
         try {
             this.createTable = (CreateTable) CCJSqlParserUtil.parse(statement);
             this.name = createTable.getTable().getName();

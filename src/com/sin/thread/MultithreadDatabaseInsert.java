@@ -29,7 +29,7 @@ public class MultithreadDatabaseInsert implements Callable<Boolean> {
         try (Connection connection = dbConnection.connectDB()) {
             connection.setCatalog(dbName);
             // max batch size
-            int MAX_BATCH_SIZE = 10000;
+            int MAX_BATCH_SIZE = 40000;
             // 对所有插入的语句进行一个个计数
             int insertCnt = 1;
             PreparedStatement insertStatement = connection.prepareStatement(tableEntity.insertSB.toString());
@@ -41,7 +41,6 @@ public class MultithreadDatabaseInsert implements Callable<Boolean> {
                     data = line.trim().split(",");
                     for (int i = 0; i < data.length; i++)
                         insertStatement.setString(i + 1, data[i]);
-                    // 没有结果 就插入数据
                     insertStatement.addBatch();
                     insertCnt++;
                 }

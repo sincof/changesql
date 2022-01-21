@@ -74,7 +74,7 @@ public class TransformService {
                         line = br.readLine();
                     }
                     br.close();
-                    // dataFile.delete();
+                     dataFile.delete();
                 }
                 writer.close();
 
