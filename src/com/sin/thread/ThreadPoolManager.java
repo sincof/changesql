@@ -44,13 +44,13 @@ public class ThreadPoolManager {
         for (DatabaseEntity databaseEntity : dbManager.dbList) {
             for (TableEntity tableEntity : databaseEntity.tableEntityMap.values()) {
                 if (runTasks < CORE_POOL_SIZE) {
-                    result[runTasks++] = poolExecutor.submit(new MultithreadDatabaseInsert(tableEntity, databaseEntity.name, dbconn));
+                    result[runTasks++] = poolExecutor.submit(new MultithreadTableInsert(tableEntity, databaseEntity.name, dbconn));
                 } else {
                     boolean finish = false;
                     while (!finish) {
                         for (int i = 0; i < CORE_POOL_SIZE; i++) {
                             if (result[i].isCancelled() || result[i].isDone()) {
-                                result[i] = poolExecutor.submit(new MultithreadDatabaseInsert(tableEntity, databaseEntity.name, dbconn));
+                                result[i] = poolExecutor.submit(new MultithreadTableInsert(tableEntity, databaseEntity.name, dbconn));
                                 finish = true;
                             }
                         }

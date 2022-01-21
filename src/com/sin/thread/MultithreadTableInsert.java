@@ -11,12 +11,12 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
 
-public class MultithreadDatabaseInsert implements Callable<Boolean> {
+public class MultithreadTableInsert implements Callable<Boolean> {
     private final TableEntity tableEntity;
     private final String dbName;
     private final DBConnection dbConnection;
 
-    public MultithreadDatabaseInsert(TableEntity tableEntity, String dbName, DBConnection dbConnection) {
+    public MultithreadTableInsert(TableEntity tableEntity, String dbName, DBConnection dbConnection) {
         this.tableEntity = tableEntity;
         this.dbName = dbName;
         this.dbConnection = dbConnection;
@@ -39,6 +39,8 @@ public class MultithreadDatabaseInsert implements Callable<Boolean> {
             while (line != null) {
                 if (line.length() != 0) {
                     data = line.trim().split(",");
+                    if("1023024418".equals(data[0]))
+                        System.out.println("Find You");
                     for (int i = 0; i < data.length; i++)
                         insertStatement.setString(i + 1, data[i]);
                     // 没有结果 就插入数据

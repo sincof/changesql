@@ -4,6 +4,7 @@ import com.sin.entity.DatabaseEntity;
 import com.sin.entity.TableEntity;
 import com.sin.service.DBConnection;
 import com.sin.service.DBManager;
+import com.sin.thread.MultithreadTableInsert;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -11,21 +12,58 @@ import net.sf.jsqlparser.statement.create.table.Index;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import javax.xml.crypto.Data;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class InsertByDatabaseTest {
+
+    // 线程池的参数
+    private static final int CORE_POOL_SIZE = 8;
+    private static final int MAX_POOL_SIZE = 8192;
+    private static final int QUEUE_CAPACITY = 8192;
+    private static final long KEEP_ALIVE_TIME = 100 * 60;
+
+    @Test
+    public void insert_a1() throws SQLException, IOException, InterruptedException {
+        String DstIP = "121.41.55.205";
+        String DstPort = "3306";
+        String DstUser = "root";
+        String DstPassword = "changesql";
+        DBConnection dbconn = new DBConnection(DstIP, DstPort, DstUser, DstPassword);
+        DBManager dbManager = new DBManager("/home/qiu/data/");
+        Connection conn = dbconn.connectDB();
+        ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
+                CORE_POOL_SIZE,
+                MAX_POOL_SIZE,
+                KEEP_ALIVE_TIME,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(QUEUE_CAPACITY),
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+        Future<Boolean>[] result = new Future[CORE_POOL_SIZE];
+        result[0] = poolExecutor.submit(new MultithreadTableInsert(dbManager.dbStore.get("a").tableEntityMap.get("1"), "a", dbconn));
+        while(!result[0].isDone()){
+            System.out.println("WAITING");
+            Thread.sleep(10000);
+        }
+        poolExecutor.shutdown();
+        while(!poolExecutor.awaitTermination(10, TimeUnit.SECONDS)){
+            System.out.println("FUCK");
+        }
+    }
 
     public String compressionFloat(String data){
         String[] strs = data.split("\\.");

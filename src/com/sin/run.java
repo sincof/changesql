@@ -88,7 +88,7 @@ public class run {
             case 4:
                 // insert
                 System.out.println("LOG: Start insert data into database");
-                TransformService.transformCSV2SQL(dbManager);
+//                TransformService.transformCSV2SQL(dbManager);
                 ThreadPoolManager threadPoolManager = new ThreadPoolManager(dbManager, dbconn);
                 threadPoolManager.runInsertTask();
                 break;
