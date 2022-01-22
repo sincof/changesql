@@ -18,7 +18,7 @@ public class ThreadPoolManager {
     private static final long KEEP_ALIVE_TIME = 100 * 60;
 
     // 由主线程传入的database的相关信息
-    private DBManager dbManager;
+    private final DBManager dbManager;
     // 新建的连接池
     DBConnection dbconn;
 

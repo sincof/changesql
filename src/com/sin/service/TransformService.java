@@ -230,8 +230,4 @@ public class TransformService {
         }
         return data;
     }
-
-    public void convert() {
-        MysqlType.FLOAT.getPrecision();
-    }
 }
