@@ -42,6 +42,8 @@ public class MultithreadDatabaseInsert implements Callable<Boolean> {
                     for (int i = 0; i < data.length; i++) {
                         if (tableEntity.colIsFloat[i])
                             insertStatement.setFloat(i + 1, Float.parseFloat(data[i]));
+                        else if (tableEntity.colIsDouble[i])
+                            insertStatement.setDouble(i + 1, Double.parseDouble(data[i]));
                         else
                             insertStatement.setString(i + 1, data[i]);
                     }

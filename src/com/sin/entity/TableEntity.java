@@ -30,6 +30,8 @@ public class TableEntity {
     // public int[] floatKeyName;
     public boolean[] colIsFloat;
 
+    public boolean[] colIsDouble;
+
     // may be key / primary key index
     // which columns in the data is the key
     public int[] keyIndex;
@@ -51,6 +53,7 @@ public class TableEntity {
         // keySet = new HashSet<>();
         // floatIndexSet = new HashSet<>();
         colIsFloat = new boolean[5];
+        colIsDouble = new boolean[5];
         columnIsKey = new boolean[5];
         createTBDefine(createTableStatement);
     }
@@ -82,6 +85,10 @@ public class TableEntity {
                 if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("float")) {
                     // floatIndexSet.add(columnCnt);
                     colIsFloat[columnCnt] = true;
+                }
+                if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("double")) {
+                    // floatIndexSet.add(columnCnt);
+                    colIsDouble[columnCnt] = true;
                 }
                 columnCnt++;
             }
