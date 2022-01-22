@@ -40,10 +40,14 @@ public class TransformService {
                             System.out.println("ERROR number of columns is not right" + database.name + table.name + ": " + line);
                             continue;
                         }
-//                        for (int i = 0; i < table.columnLen; i++) {
-//                            if (table.colIsFloat[i])
-//                                data[i] = compressionFloat(data[i]);
-//                        }
+
+                        for(int i = 0; i < table.columnLen; i++){
+                            if(table.colIsFloat[i])
+                                data[i] = String.valueOf(Float.parseFloat(data[i]));
+                            else if(table.colIsDouble[i])
+                                data[i] = String.valueOf(Double.parseDouble(data[i]));
+                        }
+
                         String hash = table.columnToHash(data);
                         if (rowMap.containsKey(hash)) {
                             String[] tmpStrs = rowMap.get(hash).data.split(",");
