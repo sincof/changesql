@@ -40,7 +40,7 @@ public class ThreadPoolManager {
                 new ThreadPoolExecutor.CallerRunsPolicy()
         );
         int runTasks = 0;
-        Future<Boolean>[] result = new Future[CORE_POOL_SIZE];
+        Future[] result = new Future[CORE_POOL_SIZE];
         for (DatabaseEntity databaseEntity : dbManager.dbList) {
             for (TableEntity tableEntity : databaseEntity.tableEntityMap.values()) {
                 if (runTasks < CORE_POOL_SIZE) {

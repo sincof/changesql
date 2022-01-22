@@ -330,6 +330,7 @@ public class TableEntity {
     // 默认认为第四列是updated_at
     public String columnToHash(String[] data) {
         StringBuilder sb = new StringBuilder();
+        // 这个判断好像是有问题的
         if (!doubleOutKey) {
             for (int i = 0; i < data.length; i++) {
                 if (i == updatedatIndex || !columnIsKey[i])
