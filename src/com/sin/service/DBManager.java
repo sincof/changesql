@@ -92,7 +92,7 @@ public class DBManager {
                         // 塞到map里面去
                         dbEntity.tableEntityMap.put(fname[0], table);
                     } else if (len != -1) {
-                        dbEntity.tableEntityMap.get(fname[0]).addTBDefine(String.valueOf(buf, 0, len));
+                        // dbEntity.tableEntityMap.get(fname[0]).addTBDefine(String.valueOf(buf, 0, len));
                         dbEntity.tableEntityMap.get(fname[0]).tableDataPath.add(dbPath + "/" + fname[0] + ".csv");
                     }
                 }
@@ -138,34 +138,6 @@ public class DBManager {
                 return -1;
             }
         }
-//        try(Statement statement = conn.createStatement()){
-//            while (DBIt.hasNext()) {
-//                String DBName = DBIt.next();
-////                statement.execute(cleanDBStatement.formatted(DBName));
-//                statement.execute(createDBStatement.formatted(DBName));
-//
-//                // 切换连接的数据库
-//                conn.setCatalog(DBName);
-//
-//                // 如果我在这里运行,必定是需要建立连接的，这样会比较浪费时间
-//                // 只是建立表格就直接关闭，没有充分利用这个连接
-//                // 先在这里写吧，后续由于我是统一利用databaseEntity储存的也比较好修改
-//                DatabaseEntity databaseEntity = dbStore.get(DBName);
-//                Iterator<TableEntity> TIt = databaseEntity.tableEntityMap.values().iterator();
-//                while(TIt.hasNext()){
-//                    try(Statement createTBStatement = conn.createStatement()){
-//                        TableEntity tableEntity = TIt.next();
-//                        createTBStatement.execute(tableEntity.createTable.toString());
-//                    }catch (SQLException e){
-//                        e.printStackTrace();
-//                        return -1;
-//                    }
-//                }
-//            }
-//        } catch (SQLException e){
-//            e.printStackTrace();
-//            return -1;
-//        }
         return 0;
     }
 
