@@ -26,6 +26,8 @@ public class TableEntity {
     public boolean[] colIsFloat;
     // have column in the key which the type is double
     public boolean[] colIsDouble;
+    // have column in the key which the type is bigint
+    public boolean[] colIsBigint;
 
     // may be key / primary key index
     // which columns in the data is the key
@@ -46,6 +48,7 @@ public class TableEntity {
         colIsFloat = new boolean[5];
         colIsDouble = new boolean[5];
         columnIsKey = new boolean[5];
+        colIsBigint = new boolean[5];
         createTBDefine(createTableStatement);
     }
 
@@ -65,10 +68,12 @@ public class TableEntity {
                 columns.add(col.getColumnName());
                 if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("float")) {
                     colIsFloat[columnCnt] = true;
-                }
-                if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("double")) {
+                } else if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("double")) {
                     colIsDouble[columnCnt] = true;
+                } else if(col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("bigint")){
+                    colIsBigint[columnCnt] = true;
                 }
+
                 columnCnt++;
             }
             this.columnLen = columnCnt;
@@ -121,6 +126,7 @@ public class TableEntity {
                     }
                 }
             } else {
+                // change the insert statement to standard method?
                 insertSB = new StringBuilder("insert into " + this.name + " values (");
                 int cnt = 0;
                 for (String name : this.columns) {
@@ -136,7 +142,7 @@ public class TableEntity {
             e.printStackTrace();
         }
 
-        if(hasKey && statement.contains("double"))
+        if (hasKey && statement.contains("double"))
             doubleOutKey = true;
     }
 

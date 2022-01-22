@@ -41,10 +41,10 @@ public class TransformService {
                             continue;
                         }
 
-                        for(int i = 0; i < table.columnLen; i++){
-                            if(table.colIsFloat[i])
+                        for (int i = 0; i < table.columnLen; i++) {
+                            if (table.colIsFloat[i])
                                 data[i] = String.valueOf(Float.parseFloat(data[i]));
-                            else if(table.colIsDouble[i])
+                            else if (table.colIsDouble[i])
                                 data[i] = String.valueOf(Double.parseDouble(data[i]));
                         }
 
@@ -70,10 +70,6 @@ public class TransformService {
                             rowMap.put(hash, newRow);
                             sb.append("\n");
                             writer.write(sb.toString());
-                            if (data[1].contains(":")) {
-                                System.out.println("Error data contain illegal character! " + data[1]);
-                                return;
-                            }
                         }
                         line = br.readLine();
                     }
@@ -127,7 +123,7 @@ public class TransformService {
     // a < b: return true
     // a > b: return false
     public static int compareTime(String oriS, String newS) throws ParseException {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Date oriD = df.parse(oriS), newD = df.parse(newS);
         return oriD.compareTo(newD);
     }

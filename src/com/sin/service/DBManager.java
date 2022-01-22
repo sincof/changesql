@@ -103,8 +103,6 @@ public class DBManager {
 
     // 在程序开始 统一调度 实现插入数据库和表格
     public int createDB(Connection conn) {
-//        String cleanDBStatement = "drop database if exists %s";
-//        String createDBStatement = "create database if not exists %s;";
         for (String databaseName : dbStore.keySet()) {
             try (Statement statement = conn.createStatement()) {
 
