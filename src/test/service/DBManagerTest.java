@@ -20,6 +20,11 @@ public class DBManagerTest {
     }
 
     @Test
+    public void testOnlyKey() throws IOException {
+        DBManager dbManager = new DBManager("/home/qiu/data");
+    }
+
+    @Test
     public void createDBaTB() throws IOException {
         DBConnection dbconn = new DBConnection(DstIP, DstPort, DstUser, DstPassword);
         DBManager dbManager = new DBManager("tmp/data/");

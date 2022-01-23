@@ -22,6 +22,8 @@ public class TableEntity {
     public boolean isKey = false;
     // have Key? if we have key we should use the key to find the data
     public boolean hasKey = false;
+    // only id as the key
+    public boolean onlykey = false;
     // have column in the key which the type is float
     public boolean[] colIsFloat;
     // have column in the key which the type is double
@@ -70,7 +72,7 @@ public class TableEntity {
                     colIsFloat[columnCnt] = true;
                 } else if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("double")) {
                     colIsDouble[columnCnt] = true;
-                } else if(col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("bigint")){
+                } else if (col.getColDataType().getDataType().toLowerCase(Locale.ROOT).equals("bigint")) {
                     colIsBigint[columnCnt] = true;
                 }
 
@@ -92,6 +94,8 @@ public class TableEntity {
             }
             // 有primark key的情况下，除了primary key的所在列全部更新
             // 无primary key的情况下，只更新updated_at参数
+            if (keyNameList.size() == 1)
+                onlykey = true;
             if (hasKey) {
                 // initialize the array which store the index data
                 keyIndex = new int[keyNameList.size()];
@@ -149,7 +153,14 @@ public class TableEntity {
     // 默认认为第四列是updated_at
     public String columnToHash(String[] data) {
         StringBuilder sb = new StringBuilder();
-        if (doubleOutKey) {
+        if (onlykey) {
+            for (int i = 0; i < data.length; i++) {
+                if (i == updatedatIndex || !columnIsKey[i])
+                    continue;
+                sb.append(data[i]);
+            }
+            sb.append(data[1]);
+        } else if (doubleOutKey) {
             for (int i = 0; i < data.length; i++) {
                 if (i != updatedatIndex)
                     sb.append(data[i]);
