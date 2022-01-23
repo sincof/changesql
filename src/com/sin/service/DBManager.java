@@ -1,18 +1,13 @@
 package com.sin.service;
 
-import com.mysql.cj.xdevapi.Table;
 import com.sin.entity.DatabaseEntity;
 import com.sin.entity.TableEntity;
-import com.zaxxer.hikari.HikariDataSource;
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.schema.Database;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
@@ -136,12 +131,6 @@ public class DBManager {
                 return -1;
             }
         }
-        return 0;
-    }
-
-    // 任务是 创建表，创建
-    public int createTable(Connection conn) {
-        String createTBCommand = "create table %s if not exists";
         return 0;
     }
 }

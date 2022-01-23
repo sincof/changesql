@@ -1,6 +1,5 @@
 package com.sin.service;
 
-import com.mysql.cj.MysqlType;
 import com.sin.entity.DatabaseEntity;
 import com.sin.entity.TableEntity;
 
@@ -122,12 +121,11 @@ public class TransformService {
 
     // a < b: return true
     // a > b: return false
-    public static int compareTime(String oriS, String newS) throws ParseException {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        Date oriD = df.parse(oriS), newD = df.parse(newS);
-        return oriD.compareTo(newD);
-    }
-
+    //public static int compareTime(String oriS, String newS) throws ParseException {
+    //    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+    //    Date oriD = df.parse(oriS), newD = df.parse(newS);
+    //    return oriD.compareTo(newD);
+    //}
     public static boolean aIsAfterB(String oriS, String newS) throws ParseException {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Date oriD = df.parse(oriS), newD = df.parse(newS);
