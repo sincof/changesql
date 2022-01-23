@@ -40,24 +40,27 @@ public class TransformService {
                             continue;
                         }
 
-                        for (int i = 0; i < table.columnLen; i++) {
-                            if (table.colIsFloat[i])
-                                data[i] = String.valueOf(Float.parseFloat(data[i]));
-                            else if (table.colIsDouble[i])
-                                data[i] = String.valueOf(Double.parseDouble(data[i]));
-                        }
+//                        for (int i = 0; i < table.columnLen; i++) {
+//                            if (table.colIsFloat[i])
+//                                data[i] = String.valueOf(Float.parseFloat(data[i]));
+//                            else if (table.colIsDouble[i])
+//                                data[i] = String.valueOf(Double.parseDouble(data[i]));
+//                        }
 
                         String hash = table.columnToHash(data);
                         if (rowMap.containsKey(hash)) {
                             String[] tmpStrs = rowMap.get(hash).data.split(",");
                             if (tmpStrs.length > table.updatedatIndex) {
-                                String time = tmpStrs[table.updatedatIndex];
-                                if (aIsAfterB(time, data[table.updatedatIndex])) {
+                                if (aIsAfterB(tmpStrs[table.updatedatIndex], data[table.updatedatIndex])) {
                                     RowEntity row = rowMap.get(hash);
                                     if (!row.flag) {
                                         duplicateRow.add(row.index);
                                         row.flag = true;
                                     }
+//                                    StringBuilder sb = new StringBuilder(data[0]);
+//                                    for (int i = 1; i < data.length; i++)
+//                                        sb.append(",").append(data[i]);
+//                                    row.data = sb.toString();
                                     row.data = line;
                                 }
                             }
@@ -68,7 +71,8 @@ public class TransformService {
                             RowEntity newRow = new RowEntity(writeCnt++, sb.toString());
                             rowMap.put(hash, newRow);
                             sb.append("\n");
-                            writer.write(sb.toString());
+//                            writer.write(sb.toString());
+                            writer.write(line + "\n");
                         }
                         line = br.readLine();
                     }
@@ -126,6 +130,7 @@ public class TransformService {
     //    Date oriD = df.parse(oriS), newD = df.parse(newS);
     //    return oriD.compareTo(newD);
     //}
+
     public static boolean aIsAfterB(String oriS, String newS) throws ParseException {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Date oriD = df.parse(oriS), newD = df.parse(newS);

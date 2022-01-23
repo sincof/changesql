@@ -43,6 +43,8 @@ public class TableEntity {
     // PreparedStatement build string
     public StringBuilder insertSB;
     private boolean doubleOutKey = false;
+    // create table statement
+    public String createTableStatement;
 
     public TableEntity(String createTableStatement) {
         this.tableDataPath = new LinkedList<>();
@@ -51,6 +53,7 @@ public class TableEntity {
         colIsDouble = new boolean[5];
         columnIsKey = new boolean[5];
         colIsBigint = new boolean[5];
+        this.createTableStatement = createTableStatement;
         createTBDefine(createTableStatement);
     }
 

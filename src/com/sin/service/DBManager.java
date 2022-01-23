@@ -114,11 +114,12 @@ public class DBManager {
                 try (Statement createTBStatement = conn.createStatement()) {
                     while (TIt.hasNext()) {
                         TableEntity tableEntity = TIt.next();
-                        if (!tableEntity.isKey) {
-                            createTBStatement.addBatch(tableEntity.createTable.toString());
-                        } else {
-                            createTBStatement.addBatch(tableEntity.createTable.toString().replaceFirst("PRIMARY KEY", "KEY"));
-                        }
+                        createTBStatement.addBatch(tableEntity.createTableStatement);
+//                        if (!tableEntity.isKey) {
+//                            createTBStatement.addBatch(tableEntity.createTable.toString());
+//                        } else {
+//                            createTBStatement.addBatch(tableEntity.createTable.toString().replaceFirst("PRIMARY KEY", "KEY"));
+//                        }
                     }
                     createTBStatement.executeBatch();
                 } catch (SQLException e) {

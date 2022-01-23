@@ -40,14 +40,14 @@ public class MultithreadDatabaseInsert implements Callable<Boolean> {
                 if (line.length() != 0) {
                     data = line.trim().split(",");
                     for (int i = 0; i < data.length; i++) {
-                        if (tableEntity.colIsFloat[i])
-                            insertStatement.setFloat(i + 1, Float.parseFloat(data[i]));
-                        else if (tableEntity.colIsDouble[i])
-                            insertStatement.setDouble(i + 1, Double.parseDouble(data[i]));
-                        else if (tableEntity.colIsBigint[i])
-                            insertStatement.setLong(i + 1, Long.parseLong(data[i]));
-                        else
-                            insertStatement.setString(i + 1, data[i]);
+//                        if (tableEntity.colIsFloat[i])
+//                            insertStatement.setFloat(i + 1, Float.parseFloat(data[i]));
+//                        else if (tableEntity.colIsDouble[i])
+//                            insertStatement.setDouble(i + 1, Double.parseDouble(data[i]));
+//                        else if (tableEntity.colIsBigint[i])
+//                            insertStatement.setLong(i + 1, Long.parseLong(data[i]));
+//                        else
+                        insertStatement.setString(i + 1, data[i]);
                     }
                     insertStatement.addBatch();
                     insertCnt++;
