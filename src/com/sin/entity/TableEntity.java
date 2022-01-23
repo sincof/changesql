@@ -153,14 +153,7 @@ public class TableEntity {
     // 默认认为第四列是updated_at
     public String columnToHash(String[] data) {
         StringBuilder sb = new StringBuilder();
-        if (onlykey) {
-            for (int i = 0; i < data.length; i++) {
-                if (i == updatedatIndex || !columnIsKey[i])
-                    continue;
-                sb.append(data[i]);
-            }
-            sb.append(data[1]);
-        } else if (doubleOutKey) {
+        if (doubleOutKey) {
             for (int i = 0; i < data.length; i++) {
                 if (i != updatedatIndex)
                     sb.append(data[i]);

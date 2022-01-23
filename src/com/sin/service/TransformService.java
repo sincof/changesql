@@ -53,7 +53,7 @@ public class TransformService {
                             String[] tmpStrs = rowMap.get(hash).data.split(",");
                             if (tmpStrs.length > table.updatedatIndex) {
                                 String time = tmpStrs[table.updatedatIndex];
-                                if (compareTime(time, data[table.updatedatIndex]) < 0) {
+                                if (aIsAfterB(time, data[table.updatedatIndex])) {
                                     RowEntity row = rowMap.get(hash);
                                     if (!row.flag) {
                                         duplicateRow.add(row.index);
@@ -126,6 +126,12 @@ public class TransformService {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Date oriD = df.parse(oriS), newD = df.parse(newS);
         return oriD.compareTo(newD);
+    }
+
+    public static boolean aIsAfterB(String oriS, String newS) throws ParseException {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        Date oriD = df.parse(oriS), newD = df.parse(newS);
+        return newD.after(oriD);
     }
 
     // 为什么要要对float进行转化呢？

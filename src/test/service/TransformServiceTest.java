@@ -22,30 +22,51 @@ public class TransformServiceTest {
     public int compareTime(String oriS, String newS) throws ParseException {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Date oriD = df.parse(oriS), newD = df.parse(newS);
-        System.out.println("Original: " + oriD.toString() + " New: "+ newD.toString());
+        System.out.println("Original: " + oriD.toString() + " New: " + newD.toString());
         return oriD.compareTo(newD);
     }
+
     @Test
     public void compareTimeTest() throws ParseException {
         String[] time = new String[]{"2021-03-01 06:10:11", "2021-03-01 06:10:12",
                 "2021-04-13 14:33:05", "2021-04-13 14:33:06",
                 "2021-04-16 16:22:25", "2021-04-16 16:22:26",
+                "2021-06-01 09:33:30 ", "2021-06-01 09:33:31",
                 "2021-06-28 07:25:28", "2021-06-28 07:25:30",
                 "2021-06-29 07:25:28", "2021-06-29 07:25:30",
                 "2021-07-16 11:58:48", "2021-07-16 11:58:49",
                 "2021-08-11 12:23:58", "2021-08-11 12:24:59",
-                "2021-11-14 20:59:23", "2021-11-14 21:59:24"};
+                "2021-08-31 12:23:58", "2021-08-31 23:24:59",
+                "2021-10-31 23:59:58", "2021-10-31 23:59:59",
+                "2021-11-1 0:0:0", "2021-11-1 10:0:0",
+                "2021-11-11 20:59:23", "2021-11-11 21:59:24",
+                "2021-11-14 20:59:23", "2021-11-14 21:59:24",
+                "2021-11-30 23:59:59", "2021-12-1 0:0:0",
+                "2021-12-31 23:59:59", "2022-1-1 0:0:0"};
+        for (String value : time) System.out.println("370895164,10.720104677469088,fuck," + value);
         for (int i = 0; i < time.length; i++) {
             for (int j = i + 1; j < time.length; j++) {
-                Assertions.assertTrue(TransformService.compareTime(time[i], time[j]) < 0);
+                Assertions.assertTrue(TransformService.aIsAfterB(time[i], time[j]));
             }
         }
         System.out.println("-------------");
-        for (String s : time) Assertions.assertEquals(0, TransformService.compareTime(s, s));
+        for (String s : time) Assertions.assertFalse(TransformService.aIsAfterB(s, s));
         System.out.println("-------------");
         for (int i = time.length - 1; i > 0; i--)
             for (int j = i - 1; j >= 0; j--)
-                Assertions.assertTrue(TransformService.compareTime(time[i], time[j]) > 0);
+                Assertions.assertFalse(TransformService.aIsAfterB(time[i], time[j]));
+
+//        for (int i = 0; i < time.length; i++) {
+//            for (int j = i + 1; j < time.length; j++) {
+//                Assertions.assertTrue(TransformService.compareTime(time[i], time[j]) < 0);
+//            }
+//        }
+//        System.out.println("-------------");
+//        for (String s : time) Assertions.assertEquals(0, TransformService.compareTime(s, s));
+//        System.out.println("-------------");
+//        for (int i = time.length - 1; i > 0; i--)
+//            for (int j = i - 1; j >= 0; j--)
+//                Assertions.assertTrue(TransformService.compareTime(time[i], time[j]) > 0);
     }
 
     @Test
