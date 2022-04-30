@@ -96,6 +96,7 @@ class Task implements Callable<Integer>{
 ## 问题
 
 在我的本地跑，内存，cpu，网络都哦没有沾满，说明多线程可以开更多的线程
+这不是由于多线程的问题，是由于MySQL端处理的请求能力达到了上限，以及没有正确处理Batch insert
 
 ## 错误
 
